@@ -3,7 +3,7 @@
         <template v-for="item in dataKey.sortArray">
             <label class="form-radio" @click.stop="changeRadio(item.value)" :key="item.value">
                 <span class="raido-item"
-                    :class='dataKey.val === item.value ? "icon-radio-checked" : "icon-radio-unchecked"'
+                    :class='dataKey.val === item.value ? "v-icon-radio-checked" : "v-icon-radio-unchecked"'
                     :value="item.value" >
                 </span>
                 <span class="radio-text">{{item.title}}</span>
@@ -28,7 +28,6 @@ let defaults = {
         title: ""
     }*/],
     options: {},
-    description: "", //描述
     changeCallBack: function() {}
 };
 

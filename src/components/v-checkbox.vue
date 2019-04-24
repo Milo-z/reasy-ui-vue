@@ -1,6 +1,24 @@
 <template>
-    <div class="form-el-content" v-show="dataKey.show" :class="{'error-group': dataKey.error}">
+    <div class="form-el-content form-el-checkbox" v-show="dataKey.show" :class="{'error-group': dataKey.error}">
         <template v-if="groups">
+            <template v-if="dataKey.hasSelectAll">
+                <input
+                    type="checkbox"
+                    ref="v-checkbox-all"
+                    v-show="false"
+                    :checked="selectedAll"
+                >
+                <label
+                    class="form-checkbox"
+                    @click.stop="changeSelectedAll()"
+                >
+                    <span
+                        class="checkbox-item"
+                        :class="selectedAll ? 'v-icon-checkbox-checked' : 'v-icon-checkbox-unchecked'"
+                    ></span>
+                    <span class="checkbox-text">全选</span>
+                </label>
+            </template>
             <template v-for="(item, index) in dataKey.sortArray">
                 <input
                     type="checkbox"
@@ -13,13 +31,13 @@
                 <label
                     class="form-checkbox"
                     :class="{'disabled': item.disabled}"
-                    @click.stop="changeCheckbox(index)"
+                    @click.stop="changeCheckbox(index, item.selectAll)"
                     :data-index="index"
                     :key="item.key"
                 >
                     <span
                         class="checkbox-item"
-                        :class="getChecked(item.value, index) ? 'icon-checkbox-checked' : 'icon-checkbox-unchecked'"
+                        :class="getChecked(item.value, index) ? 'v-icon-checkbox-checked' : 'v-icon-checkbox-unchecked'"
                     ></span>
                     <span class="checkbox-text">{{item.title}}</span>
                 </label>
@@ -36,7 +54,7 @@
                 >
                 <span
                     class="checkbox-item"
-                    :class="getChecked() ? 'icon-checkbox-checked' : 'icon-checkbox-unchecked'"
+                    :class="getChecked() ? 'v-icon-checkbox-checked' : 'v-icon-checkbox-unchecked'"
                 ></span>
                 <span class="checkbox-text">{{dataKey.title}}</span>
             </label>
@@ -55,6 +73,7 @@ let defaults = {
     val: "", //组件id
     values: [true, false], //选中和不选中 默认用options的数据
     error: "",
+    hasSelectAll: false, //是否有全选  组存在
     sortArray: [/*{
         title: "",
         value: "",
@@ -91,6 +110,7 @@ export default {
     },
     data() {
         return {
+            selectedAll: false,
             groups: false
         };
     },
@@ -106,17 +126,33 @@ export default {
                     ? this.dataKey.values[0]
                     : this.dataKey.values[1];
             } else {
+                //组
+
                 this.$refs["v-checkbox"][index].checked = !this.$refs[
                     "v-checkbox"
                 ][index].checked;
+
                 this.$refs["v-checkbox"].forEach(function(item) {
                     if (item.checked) {
                         valArr.push(item.value);
                     }
                 });
+               
+               
                 this.dataKey.val = valArr;
-                this.checkData(this.dataKey, valArr);
+                //this.checkData(this.dataKey, valArr);
             }
+        },
+        changeSelectedAll() {
+            
+            this.selectedAll = !this.selectedAll;
+            var valArr = [];
+            if(this.selectedAll) {
+               this.$refs["v-checkbox"].forEach(function(item) {
+                    valArr.push(item.value);
+                }); 
+            }
+            this.dataKey.val = valArr;
         },
         getChecked(value, index) {
             if (!this.groups) {
@@ -136,6 +172,12 @@ export default {
     watch: {
         "dataKey.val": {
             handler(newValue, oldValue) {
+                //全选
+                if(newValue.length === this.dataKey.sortArray.length) {
+                    this.selectedAll = true;
+                } else {
+                    this.selectedAll = false;
+                }
                 this.dataKey.changeCallBack &&
                     this.dataKey.changeCallBack(newValue);
             }
@@ -161,5 +203,9 @@ export default {
         display: inline-block;
         vertical-align: middle;
     }
+}
+
+.form-el-checkbox {
+    max-width: $elem-width;
 }
 </style>

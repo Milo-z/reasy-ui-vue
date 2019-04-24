@@ -4,9 +4,9 @@ const root = path.resolve(__dirname, '..') // 项目的根目录绝对路径
 const CopyWebpackPlugin = require('copy-webpack-plugin'); //将特定文件输出指定位置
 const { VueLoaderPlugin } = require('vue-loader')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
-const OptimizeCssAssetsPlugin = require('optimize-css-assets-webpack-plugin')
+const OptimizeCssAssetsPlugin = require('optimize-css-assets-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
-
+const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 
 module.exports = {
     entry: {
@@ -23,14 +23,14 @@ module.exports = {
 		libraryTarget: 'umd',
 		umdNamedDefine: true
 	},
-	externals: {
+	/* externals: {
 		vue: {
 		  root: 'Vue',
 		  commonjs: 'vue',
 		  commonjs2: 'vue',
 		  amd: 'vue'
 		}
-	  },
+	}, */
     resolve: {
         alias: { // 配置目录别名
             // 在任意目录下require('components/example') 相当于require('项目根目录/src/components/example')
@@ -47,8 +47,15 @@ module.exports = {
                 test: /\.(scss|css)$/,
                 use: [
                     "vue-style-loader",
+					"css-loader",
                     //MiniCssExtractPlugin.loader,
-                    'css-loader',
+                    /* {
+					 loader: 'css-loader',
+					 options: {
+					  // modules: true,
+					   importLoaders: 1
+					 }
+				   }, */
                     'postcss-loader',
                     'sass-loader',
                     {
@@ -72,7 +79,7 @@ module.exports = {
                     name: '[name].[ext]?[hash:7]'
                 }
             },
-            {
+            /* {
                 test: /\.(eot|svg|ttf|woff)(\?\S*)?$/,
                 use: [{
                     loader: 'file-loader',
@@ -84,7 +91,8 @@ module.exports = {
                     }
                 }]
 
-            },
+            }, */
+			{ test: /\.(png|woff|woff2|eot|ttf|svg)$/, loader: 'url-loader?limit=100000' },
 
             {
                 test: /\.js$/, //匹配所有.js文件
@@ -113,17 +121,49 @@ module.exports = {
 
     },
 
-    optimization: { //webpack 4
+    /* optimization: { //webpack 4
+        minimizer: [
+		  new UglifyJsPlugin({
+			cache: true,
+			parallel: true,
+			sourceMap: true // set to true if you want JS source maps
+		  }),
+		  new OptimizeCssAssetsPlugin({})
+		]
+    }, */
+	optimization: { //webpack 4
         minimize: false
     },
     plugins: [
 
         new VueLoaderPlugin(),
+		
+		/* new MiniCssExtractPlugin({
+			filename: 'css/styles.css?[contenthash:5]',
+			chunkFilename: 'css/[name].css?[contenthash:5]' // use contenthash *
+		}), */
+		
+		new OptimizeCssAssetsPlugin({
+		  assetNameRegExp: /\.(css|scss)$/g,
+		  cssProcessor: require('cssnano'),
+		  cssProcessorPluginOptions: {
+			preset: ['default', {
+				mergeRules: false,
+				filterPlugins: false,
+				discardComments: {
+				  removeAll: true,
+				},
+				// ref: https://github.com/umijs/umi/issues/955
+				normalizeUrl: false
+			  }]
+		  },
+		  canPrint: true
+		}),
 
-        new CopyWebpackPlugin([ //reference from：https://www.npmjs.com/package/copy-webpack-plugin
+        /* new CopyWebpackPlugin([ //reference from：https://www.npmjs.com/package/copy-webpack-plugin
             { from: './src/fonts', to: './fonts/', flatten: true }
         
-        ])
+        ]) */
     ]
 
 }

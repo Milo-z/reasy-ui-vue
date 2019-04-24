@@ -1,12 +1,9 @@
 
 import '../css/style.scss';
-import 'babel-polyfill';
-import {setOptions, formMessage} from './libs';
+import {setOptions, formMessage, checkData, checkSubmit} from './libs';
 import msgboxVue from './MessageBox';
-import { http } from "../http/index";
 
 /*全局组件*/
-
 
 import vGroup from './v-group';
 import vDialog from './v-dialog';
@@ -25,6 +22,7 @@ import vProgress from './v-progress';
 import vSwitch from './v-switch';
 import vSlider from './v-slider';
 import vPort from './v-port';
+import vTableCheckbox from './table-checkbox';
 
 let components = [
     vGroup,
@@ -41,14 +39,15 @@ let components = [
     vProgress,
     vSwitch,
     vSlider,
-    vPort
+    vPort,
+    vTableCheckbox
 ];
 
-import '../directives';
+import derectives from '../directives';
 
 const install = function(Vue) {
     Vue.prototype.setOptions = setOptions;
-
+    Vue.use(derectives);
     components.forEach(component => {
         Vue.component(component.name, component);
     });
@@ -61,6 +60,10 @@ const install = function(Vue) {
     Vue.prototype.globalRemoveEvent = function(eventName,callback) {
         document.body.removeEventListener(eventName, callback);
     };
+
+    //定义数据验证
+    Vue.prototype.$checkData = checkData;
+    Vue.prototype.$checkAll = checkSubmit;
 
     /**
      * 显示弹出层
@@ -96,7 +99,6 @@ const install = function(Vue) {
             currentMsg = msgBox;
            // Vue.extend(currentMsg, defaults);
         }
-
 
         if(typeof msgOptions.content == "object" && msgOptions.content.nodeType === 1) {
             msgOptions.content = msgOptions.content.outerHTML;
@@ -137,10 +139,7 @@ const install = function(Vue) {
     	return showDialog(msgOptions);
 
     };
-
-    //请求接口
-    Vue.prototype.$getData = http.get;
-    Vue.prototype.$post = http.post;
+    
 };
 
 /* istanbul ignore if */
@@ -163,6 +162,7 @@ export default {
     vProgress,
     vSwitch,
     vSlider,
-    vPort
+    vPort,
+    vTableCheckbox
 };
 

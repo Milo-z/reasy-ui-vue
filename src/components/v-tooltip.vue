@@ -1,5 +1,5 @@
 <template>
-	<transition name="fade">
+	<transition>
 	    <div ref="tooltip" v-if="parseHtml" v-html="content" class="el-tooltip" v-show="show && content" :style="{'left': left + 'px', 'top': top + 'px'}">
 	    	
 	    </div>
@@ -23,14 +23,17 @@
 				relativeHeight: 0
 			};
 		},
+		mounted() {
+			console.log("mounted");
+		},
 		updated() {
 			let clientRect = this.$refs.tooltip.getBoundingClientRect(),
 				bodyWidth = document.body.clientWidth,
 				bodyHeight = document.body.clientHeight;
-
+			
 			//当右边超出屏幕宽度时
 			if(clientRect.right > bodyWidth) {
-				this.left = this.left - this.$refs.tooltip.offsetWidth;
+				this.left = this.left - this.$refs.tooltip.offsetWidth * 2 - 10;
 			}
 			
 			//当下方超出屏幕高度时

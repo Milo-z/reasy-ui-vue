@@ -8,16 +8,22 @@
                 v-model="searchValue"
                 @keyup.enter="goSearch()"
             >
-            <span class="icon-search" @click="goSearch()"></span>
+            <span class="v-icon-search" @click="goSearch()"></span>
         </div>
-        <table class="table table-fixed">
+        <table class="table table-fixed" :style="{'padding-right': tableScroll ? '17px' : ''}">
             <thead>
                 <tr>
+                    <th width="50px" v-if="tableOptions.selectBox">
+                        <span class="select-box" >
+                            <v-checkbox :data-key="checkbox"></v-checkbox>
+                        </span>
+                    </th>
                     <th
                         :width="columns.width"
-                        v-for="columns in tableOptions.columns"
+                        v-for="(columns) in tableOptions.columns"
                         :key="columns.field"
                     >
+                        
                         <span
                             :class="{'pointer': columns.sort}"
                             @click="sortTable(columns, columns.field)"
@@ -25,14 +31,13 @@
                             {{columns.title}}
                             <span
                                 v-if="columns.sort"
-                                :class="{'icon-unsort': sortType === '',
-                                    'icon-sort-up': sortType === 'asc' && sortKey == columns.field,
-                                    'icon-sort-down': sortType === 'desc' && sortKey == columns.field}"
+                                :class="{'v-icon-unsort': sortType === '',
+                                    'v-icon-sort-up': sortType === 'asc' && sortKey == columns.field,
+                                    'v-icon-sort-down': sortType === 'desc' && sortKey == columns.field}"
                                 class="th-sort"
                             ></span>
                         </span>
                     </th>
-                    <th width="17px" v-if="tableScroll"></th>
                 </tr>
             </thead>
         </table>
@@ -41,14 +46,24 @@
                 <tbody>
                     <tr
                         ref="table-body-tr"
-                        v-for="(rowsData, rowsIndex) in pageData"
-                        :key="rowsData[tableOptions.key]"
+                        v-for="(rowsData) in pageData"
+                        
                     >
+                        <td class="select-box" style="width: 50px"  v-if="tableOptions.selectBox">
+                            <component
+                                :is="'table-checkbox'"
+                                @on-custom-comp="customCompFunc"
+                                :rowData="rowsData"
+                                :originData="findOriginData(rowsData[tableOptions.key])"
+                                field="selected"
+                                :index="findIndex(rowsData[tableOptions.key])"
+                                :style="{'width': '50px'}"
+                            ></component>
+                        </td>
                         <template v-for="(columns, index) in tableOptions.columns">
                             <td
                                 v-if="!columns.componentName"
                                 :style="{'width': columns.width}"
-                                :key="index"
                             >
                                 <div
                                     v-if="columns.parseHtml"
@@ -70,10 +85,11 @@
                                 :class="columns.css"
                                 class="fixed"
                                 :style="{'width': columns.width}"
-                                :key="index"
+                          
                             >
                                 <component
                                     :is="columns.componentName"
+                                    :action="columns.action"
                                     @on-custom-comp="customCompFunc"
                                     :rowData="rowsData"
                                     :originData="findOriginData(rowsData[tableOptions.key])"
@@ -85,7 +101,7 @@
                         </template>
                     </tr>
                     <tr v-if="pageData.length === 0">
-                        <td :colspan="tableOptions.columns.length">
+                        <td :colspan="tableOptions.selectBox ? tableOptions.columns.length + 1 : tableOptions.columns.length">
                             <div class="table-no-data">没有数据</div>
                         </td>
                     </tr>
@@ -120,7 +136,6 @@
 
 <script>
 import { copyDeepData, sortByKey } from "./libs";
-
 const PAGE_PREV_NUM = 2; //当前页前后显示页数
 const MAX_PAGE_SHOW = 2 * PAGE_PREV_NUM + 1 + 2 + 2; // 前后页 + 本身页 + 2个省略 + 首尾两页
 
@@ -149,7 +164,8 @@ let defaults = {
     sortOrder: [], //默认排序顺序
     search: false,
     originData: [],
-    searchItem: []
+    searchItem: [],
+    selectBox: false
 };
 
 //判断是否存在
@@ -197,13 +213,11 @@ let filterTable = (tableData, filterStr, field) => {
 
 export default {
     name: "v-table",
-    props: ["tableOptions", "callback", "update"],
+    props: ["tableOptions", "callback"],
     created() {
         //数据合并
         this.tableOptions = this.setOptions(this.tableOptions, defaults);
-        if (this.tableOptions.originData) {
-            return;
-        }
+
         let _this = this;
         this.tableOptions.columns.forEach(function(item) {
             if (typeof item.format == "function") {
@@ -213,12 +227,10 @@ export default {
         if(!Array.isArray(this.tableOptions.searchItem)) {
             this.tableOptions.searchItem = this.tableOptions.searchItem.split(",");
         }
-        
     },
 
     mounted() {
         this.tabaleCallback = this.callback || function() {};
-        this.getTableData();
     },
 
     data() {
@@ -229,11 +241,15 @@ export default {
             originData: [], //转换后的原始数据，format后的数据
             formatOpt: {},
             footer: [], //
-            updateTimer: null, //定时器
             sortKey: null, // 排序元素
             sortType: "",
             searchValue: "", //搜索文字
-            bodyHeight: ""
+            bodyHeight: "",
+            checkbox: {
+                values: ["1", "0"],
+                val: "",
+                changeCallBack: this.changeSelectAll
+            }
         };
     },
 
@@ -286,7 +302,7 @@ export default {
         updateScroll() {
             //计算滚动条显示
             this.$nextTick(function() {
-                if(this.$refs["table-body-tr"].length === 0) {
+                if((this.$refs["table-body-tr"]||[]).length === 0) {
                     return;
                 }
                 let trHeight = this.$refs["table-body-tr"][0].offsetHeight;
@@ -430,6 +446,12 @@ export default {
             this.tableOptions.page = nextPage;
             //当前页数据
             this.pageData = this.getPageData();
+            
+            //切换页面时，清除选中
+            if(this.tableOptions.selectBox){
+                this.pageData.forEach(item => this.$set(item,"selected", "0"));
+                this.checkbox.val = "0";
+            }
             this.updateFooter();
         },
         //获取当前页的数据
@@ -442,29 +464,6 @@ export default {
                 );
             }
             return this.tableData;
-        },
-        reload() {
-            this.getTableData();
-        },
-
-        /**
-         * @description:  获取表格数据
-         * @param {type} 
-         * @return: 
-         */
-        getTableData() {
-            let _this = this;
-            if (_this.tableOptions.requestUrl) {
-                //请求数据
-                this.sortKey = _this.tableOptions.sortOrder;
-                this.$getData(_this.tableOptions.requestUrl, function(res) {
-                    //数据修改后  执行监听回调
-                    _this.tableOptions.originData = _this.sortData(
-                        res.list,
-                        _this.tableOptions.sortOpt
-                    );
-                });
-            }
         },
         //排序，以field字段排序
         sortTable(fieldOptions, field) {
@@ -536,6 +535,14 @@ export default {
             }
             //转换后的原始数据
             this.originData = newTableArr;
+        },
+        changeSelectAll() {
+            this.pageData.forEach(item => this.$set(item,"selected", this.checkbox.val));
+            let params = {
+                type: "selectAll",
+                rowsData: this.checkbox.val == "1" ? this.pageData : []
+            };
+            this.$emit("on-custom-comp", params);
         }
     },
     watch: {
@@ -553,24 +560,11 @@ export default {
 
                 this.updateTable();
             }
-        },
-        update: {
-            handler(updateTime) {
-                clearInterval(this.updateTimer);
-                let _this = this;
-                if (updateTime) {
-                    this.updateTimer = setInterval(function() {
-                        _this.reload();
-                    }, updateTime);
-                }
-            },
-            //立即执行
-            immediate: true
         }
+        
     },
     destroyed() {
-        clearInterval(this.updateTimer);
-        this.updateTimer = null;
+        
     }
 };
 </script>
@@ -586,7 +580,7 @@ export default {
         padding-right: 44px;
         border-radius: 6px;
     }
-    .icon-search {
+    .v-icon-search {
         position: absolute;
         right: 0;
         top: 0;
@@ -606,13 +600,15 @@ export default {
     overflow-y: auto;
 }
 .table-group {
-    width: 90%;
-    margin: 15px auto;
+    width: 100%;
+    margin: 10px;
 }
 .table {
     border-collapse: separate;
     border-spacing: 0;
     text-align: center;
+    width: 100%;
+    max-width: 100%;
     &.table-fixed {
         table-layout: fixed;
     }
@@ -622,7 +618,7 @@ export default {
     tr {
         line-height: $form-line-height + 2px;
         td {
-            padding: 2px 4px;
+            padding: 2px 0;
         }
     }
     th,
@@ -635,8 +631,7 @@ export default {
         display: inline-block;
         vertical-align: middle;
     }
-    width: 100%;
-    max-width: 100%;
+    
     .fixed {
         overflow: hidden;
         text-overflow: ellipsis;
@@ -646,6 +641,11 @@ export default {
     .table-no-data {
         text-align: center;
         width: 100%;
+    }
+    .select-box {
+        .form-checkbox {
+            margin-right: 0;
+        }
     }
 }
 .table-footer {

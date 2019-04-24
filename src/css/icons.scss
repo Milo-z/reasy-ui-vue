@@ -1,5 +1,5 @@
 @font-face {
-    font-family: 'iconmoon';
+    font-family: 'v-iconmoon';
     src: url('../fonts/iconmoon.ttf?iot201') format('truetype'),
         url('../fonts/iconmoon.woff?iot201') format('woff'),
         url('../fonts/iconmoon.svg?iot201#iconmoon') format('svg');
@@ -7,10 +7,10 @@
     font-style: normal;
 }
 
-[class^="icon-"],
-[class*=" icon-"] {
+[class^="v-icon-"],
+[class*=" v-icon-"] {
     /* use !important to prevent issues with browser extensions that change fonts */
-    font-family: 'iconmoon' !important;
+    font-family: 'v-iconmoon' !important;
     speak: none;
     font-style: normal;
     font-weight: normal;
@@ -33,58 +33,58 @@
     -moz-osx-font-smoothing: grayscale;
 }
 
-.icon-eye-open:before {
+.v-icon-eye-open:before {
     content: "\e909";
 }
 
-.icon-eye-close:before {
+.v-icon-eye-close:before {
     content: "\e90a";
 }
 
-.icon-checkbox-checked:before {
+.v-icon-checkbox-checked:before {
     content: "\e900";
 }
 
-.icon-checkbox-unchecked:before {
+.v-icon-checkbox-unchecked:before {
     content: "\e901";
 }
 
-.icon-search:before {
+.v-icon-search:before {
     content: "\e902";
 }
 
-.icon-sort-up:before {
+.v-icon-sort-up:before {
     content: "\e903";
 }
 
-.icon-sort-down:before {
+.v-icon-sort-down:before {
     content: "\e904";
 }
 
-.icon-unsort:before {
+.v-icon-unsort:before {
     content: "\e905";
 }
 
-.icon-arrrow-down:before {
+.v-icon-arrrow-down:before {
     content: "\e920";
 }
 
-.icon-arrrow-up:before {
+.v-icon-arrrow-up:before {
     content: "\e921";
 }
 
-.icon-switch-off:before {
+.v-icon-switch-off:before {
     content: "\e947";
 }
 
-.icon-switch-on:before {
+.v-icon-switch-on:before {
     content: "\e94a";
 }
 
-.icon-radio-checked:before {
+.v-icon-radio-checked:before {
     content: "\ea55";
 }
 
-.icon-radio-unchecked:before {
+.v-icon-radio-unchecked:before {
     content: "\ea56";
 }

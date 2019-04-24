@@ -9,13 +9,14 @@
                     :class="dataKey.css"
                     v-model="selectLabel"
                     :disabled="dataKey.disabled"
+                    :data-id-tag="'tag-'"
                     @keyup="changeValue()"
                     @blur="setKeyValue()"
                     :maxlength="dataKey.maxLength"
                     ref="input"
                 >
                 <div class="select-arrow" :class="dropdownShow ? 'arrow-up' : 'arrow-down'">
-                    <div class="select-arrow-icon icon-arrrow-down"></div>
+                    <div class="select-arrow-icon v-icon-arrrow-down"></div>
                 </div>
             </div>
             <transition>
@@ -38,7 +39,6 @@
             </transition>
             <div class="error-bottom text-error" v-if="dataKey.error">{{dataKey.error}}</div>
         </div>
-        <span v-if="dataKey.description">{{dataKey.description}}</span>
     </div>
 </template>
 
@@ -60,9 +60,8 @@ let defaults = {
         }*/
     ],
     val: "", //组件id
-    valid: {}, //数据验证 仅自定义时生效
+    valid: [], //数据验证 仅自定义时生效
     options: {}, //options 和sortArray 同时存在时优先以sortArray存在
-    description: "", //描述
     changeCallBack: function() {}
 };
 
@@ -72,8 +71,10 @@ export default {
     name: "v-select",
     props: ["dataKey"],
     created() {
-        this.dataKey = this.setOptions(this.dataKey, defaults);
-        
+        if(!Array.isArray(this.dataKey.sortArray)) {
+            this.$set(this.dataKey, "sortArray", []);
+        }
+
         //sortArray为空时，默认以dataKey.options 对象属性排序
         if (this.dataKey.sortArray.length === 0) {
             for (let prop in this.dataKey.options) {
@@ -83,6 +84,7 @@ export default {
                 });
             }
         }
+        this.dataKey = this.setOptions(this.dataKey, defaults);
     },
     data() {
         return {
@@ -116,14 +118,12 @@ export default {
         setInputValue() {
             var newVal,
                 _this = this;
-
             this.dataKey.sortArray.forEach(function(item) {
                 //当值存在于下拉列表时
                 if (_this.dataKey.val == item.value) {
                     newVal = item.title;
                 }
             });
-
             if (!newVal) {
                 newVal = this.dataKey.val;
             }
@@ -152,8 +152,9 @@ export default {
         },
 
         changeValue() {
-            this.checkData(this.dataKey, this.selectLabel);
+            //this.checkData(this.dataKey, this.selectLabel);
             this.dropdownShow = false;
+            let isCheckTrue = this.check(this.dataKey);
         },
         hanlderManual() {
             this.$refs.input.focus();
@@ -163,6 +164,16 @@ export default {
         },
         hide() {
             this.dropdownShow = false;
+        },
+        check(dataObj) {
+
+            //todo: 必须全局绑定 checkData
+            if(typeof this.$checkData == "function") {
+                return this.$checkData(dataObj, this.selectLabel);
+            }
+
+            return true;
+            
         }
     },
     destroyed() {
@@ -171,7 +182,10 @@ export default {
     watch: {
         "dataKey.val": {
             handler(newValue, oldValue) {
-                this.setInputValue();
+                try {
+                    this.setInputValue();
+                } catch(e) {}
+                
             },
             //立即执行
             immediate: true

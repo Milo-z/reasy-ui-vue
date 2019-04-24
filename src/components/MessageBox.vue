@@ -12,9 +12,10 @@
 						<div v-if="parseHtml" v-html="content"></div>
 						<div v-else>{{content}}</div>
 					</div>
-					<div class="btn-group text-right">
-						<button class="btn btn-primary" @click="confirm()">{{okText}}</button>&nbsp;&nbsp;
-						<button v-show="hasCancel" class="btn" @click="cancel()">{{cancelText}}</button>
+					<div class="btn-group">
+						
+						<button v-show="hasCancel" class="btn" @click="cancel()">{{cancelText}}</button> &nbsp;&nbsp;
+						<button class="btn btn-primary" @click="confirm()">{{okText}}</button>
 					</div>
 				</div>
 			</div>
@@ -43,8 +44,7 @@
         		this.resolve(true);
         	},
         	cancel() {
-        		this.isShowMessageBox = false;
-        		this.reject();
+				this.isShowMessageBox = false;
         	},
         	showMsgBox() {
         		this.isShowMessageBox = true;

@@ -18,7 +18,7 @@
         >{{dataKey.placeholder}}</div>
         <div
             v-if="dataKey.hasEye"
-            :class="dataKey.type == 'password'? 'icon-eye-close': 'icon-eye-open'"
+            :class="dataKey.type == 'password'? 'v-icon-eye-close': 'v-icon-eye-open'"
             @click="changePlaceHolder()"
         ></div>
         <div class="error-bottom text-error" v-if="dataKey.error">{{dataKey.error}}</div>
@@ -27,7 +27,7 @@
 
 <script>
 let defaults = {
-    required: false,
+    required: true,
     css: "", //样式
     show: true, //是否显示
     ignore: false, //是否忽略
@@ -70,18 +70,29 @@ export default {
         },
 
         changeValue() {
-            var newVal = this.dataKey.val,
-                checkSuccess = this.checkData(this.dataKey);
-            if (checkSuccess) {
-                this.dataKey.changeCallback &&
-                    this.dataKey.changeCallback(newVal);
+            
+            let isCheckTrue = this.check(this.dataKey);
+            if(!isCheckTrue) {
+                return;
             }
-
-            this.$emit("custom-event", newVal);
+            
+             
+            this.dataKey.changeCallback && this.dataKey.changeCallback(this.dataKey.val);
+            this.$emit("custom-event", this.dataKey.val);
         },
         hasPlaceholder() {
             var i = document.createElement("input");
             return "placeholder" in i;
+        },
+        check(dataObj) {
+
+            //todo: 必须全局绑定 checkData
+            if(typeof this.$checkData == "function") {
+                return this.$checkData(dataObj);
+            }
+
+            return true;
+            
         }
     },
     destroyed() {
@@ -117,8 +128,8 @@ export default {
     padding: $input-padding;
 }
 
-.icon-eye-open,
-.icon-eye-close {
+.v-icon-eye-open,
+.v-icon-eye-close {
     display: inline-block;
     position: absolute;
     width: 30px;

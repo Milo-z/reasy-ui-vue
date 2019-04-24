@@ -12,8 +12,9 @@
 						<slot></slot>
 					</div>
 					<div class="btn-group">
-						<v-button :callback="handlerOK" css="btn-primary" :title="dialog.okText"></v-button>
 						<v-button v-if="dialog.hasCancel !== false" :callback="handlerCancel" :title="dialog.cancelText"></v-button>
+						<v-button v-if="dialog.hasOK !== false" :callback="handlerOK" css="btn-primary" :title="dialog.okText"></v-button>
+						
 					</div>
 				</div>
 			</div>
@@ -25,7 +26,8 @@
 	let defaults = {
 	    required: false,
 	    css: "", //样式
-	    title: "",
+		title: "",
+		hasOK: true,
 	    hasCancel: true,
 	    okText: "确定",
 	    cancelText: "取消",
@@ -44,8 +46,6 @@
             };
         },
         created() {
-        	let _this = this;
-
         	//TODO: 数据转换
     		this.dialog = this.setOptions(this.dialog, defaults);
 
@@ -68,6 +68,10 @@
 </script>
 
 <style lang="scss">
-
-
+	.dialog {
+		.btn-group {
+			padding: 20px 0;
+			border-top: 1px solid #ccc;
+		}
+	}
 </style>

@@ -1,3 +1,53 @@
+### 数据验证
+
+输入框和自定义下拉框可定义数据验证函数，内部已集成数据验证，但未定义数据验证的类型。
+
+如需定义数据验证类型，需在`Vue.prototype`上定义`$valid`属性，
+值为对象，如
+
+	let valid = {
+		num: {
+			all: function(str, min, max) {
+
+	            if (!(/^([-0-9])?([0-9]+)$/).test(str)) {
+	                return "必须输入数字";
+	            }
+
+	            if (min && max) {
+	                if (parseInt(str, 10) < min || parseInt(str, 10) > max) {
+	                    return _("输入范围: %s - %s", [min, max]);
+	                }
+	            }
+	        }
+		}
+	
+	}
+	Vue.prototype.$valid = valid;
+	
+
+	//or
+
+	let valid = {
+
+		num: function(str, min, max) {
+
+            if (!(/^([-0-9])?([0-9]+)$/).test(str)) {
+                return "必须输入数字";
+            }
+	
+            if (min && max) {
+                if (parseInt(str, 10) < min || parseInt(str, 10) > max) {
+                    return _("输入范围: %s - %s", [min, max]);
+                }
+            }
+		}
+	
+	}
+
+	Vue.prototype.$valid = valid;
+
+
+
 ### Table表格
 
 支持属性 tableOptions 表格数据配置
@@ -14,17 +64,19 @@
 	js
 
 	tableData： {
-		requestUrl： //表格请求数据
-		originData： //表格数据 当requestUrl未设置时 表格数据为 originData
-		show: 是否显示
+		
+		originData： [],//表格原始数据
+		show: true,是否显示
 		key: //每行tr关键字
 		css: 表格自定义样式
-		maxTableRow： number //每页显示多少行，超过行则出现滚动条
-		showPage: true/false //是否支持分页
-		pagePer： number //每页多少条
+		maxTableRow： 10， //每页显示多少行，超过行则出现滚动条
+		showPage: false //是否支持分页
+		pagePer： 10 //每页多少条
 		sortOrder: ["string"] //表头支持排序的列
 		sortOpt: Object  key为表头排序的关键字 value为asc/desc
-		search: true/false 是否支持搜索
+		search: true 是否支持搜索
+		searchItem: [], //支持搜索的字段
+		selectBox: false, //是否支持第一列为checkbox
 		columns: [{
 			title: "无线名称",
             field: "ssid",
@@ -38,6 +90,13 @@
 		]
 
 	}
+
+
+当selectBox为true时， 列表第一项为checkbox
+
+点击事件会执行表格的自定义事件 on-custom-comp，传参type值为checkbox，
+
+点击全选时，传参type值为selectAll
 
 
 	自定义表格列
@@ -72,14 +131,13 @@
 
 callback 表格更新后的回调
 
-update 表格更新时间  数值为ms
-
+表格操作事件处理主要是执行表格的 on-custom-comp事件，通过类型不同处理不同的事件
 
 ### 下拉框
 
 支持下拉框自定义和手动输入
 
-dataKey参数
+默认值
 
 	required: true,
     css: "", //样式
@@ -87,7 +145,7 @@ dataKey参数
     ignore: false, //是否忽略
     disabled: false, //是否禁用
     hasManual: false, //是否支持自定义
-    manualText: "自定义",
+    manualText: "自定义", //自定义的文字
     maxLength: "", //输入框最大输入长度
     error: "", //错误
     sortArray: [
@@ -96,9 +154,8 @@ dataKey参数
             title: xxx
         }*/
     ],
-    val: "", //组件id
+    val: "", //组件值
     options: {}, //options 和sortArray 同时存在时优先以sortArray存在
-    description: "", //描述
 	valid: { //数据验证 仅自定义时生效
 			
 	},
@@ -146,6 +203,7 @@ dataKey参数
     val: "", //组件id
     values: [true, false], //选中和不选中 默认用options的数据
     error: "",
+	hasSelectAll: true/false  //是否有全选
     sortArray: [/*{
         title: "",
         value: "",
@@ -161,6 +219,8 @@ dataKey参数
 当sortArray长度为0时，则为单个复选框 此时title 生效 值为 values的元素
 
 当sortArray长度不为0时，则为多个复选框，返回值key为数组
+
+hasSelectAll 是否有全选，适用于多个复选框
 
 
 
@@ -190,6 +250,8 @@ dataKey参数
 
 ### 单选按钮
 
+默认值
+
 	required: true,
     css: "", //样式
     show: true, //是否显示
@@ -202,12 +264,11 @@ dataKey参数
         title: ""
     }*/],
     options: {},
-    description: "", //描述
     changeCallBack: function() {}
 
 
 示例
-	<v-group title="复选框">
+	<v-group title="单选框">
 		<v-radio :dataKey="radio"></v-radio>
 	</v-group>
 
@@ -251,12 +312,20 @@ dataKey参数
     hasEye: "",
     val: "", //组件value
     error: "", //错误标志
-    valid: [
+    valid: [ //
         /*{
             type: "ssid",
             args: [1, 2]
         }*/
     ]
+
+
+valid 为单个验证时，可以为对象，如
+
+	valid: {
+		type: "num",
+		args: [1,100]
+	}
 
 
 示例
@@ -275,7 +344,11 @@ dataKey参数
 	},
 
 
+
+
 ### 开关
+
+默认值
 
 	css: "", //样式
     show: true, //是否显示
@@ -316,7 +389,7 @@ dataKey参数
 	min： 最小值
 	max： 最大值
 	value： 当前值 
-
+	
 	<v-slider min="1" max="23" v-model="3"></v-slider>
 	
 
@@ -401,7 +474,10 @@ dataKey参数
     singleVal: false, //是否只允许单个端口
     portNum: 28, //端口总数量
     consolePort: 4, //console 端口个数
-    val: []
+    val: []，
+	isClick: true, //是否支持点击
+	disabled: [], //禁用的端口
+	legend: false //是否支持图标类型显示
 
 	<v-port :data-port="port"></v-port>
 
