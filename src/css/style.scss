@@ -1,6 +1,5 @@
 @import "./icons.scss";
 @import "./normalize.scss";
-@import "./animation.css";
 
 html {
     font-size: $font-size-small;
@@ -21,6 +20,7 @@ body {
         text-align: left;
         line-height: $form-line-height;
         width: 33%;
+        min-height: 1px;
         color: $info-color;
     }
 
@@ -46,18 +46,6 @@ body {
     color: $error-color;
 }
 
-.text-info {
-    color: $info-color;
-}
-
-.text-light {
-    color: $light-color;
-}
-
-.text-success {
-    color: $success-color;
-}
-
 input[type='text'],
 input[type='password'] {
     outline: 0;
@@ -71,10 +59,6 @@ input[type='password'] {
 
 .active {
     color: $main-active-color;
-}
-
-.text-right {
-    text-align: right;
 }
 
 .btn {
@@ -116,6 +100,18 @@ input[type='password'] {
     background: #fff;
     z-index: 100;
     opacity: .5;
+}
+
+@keyframes slideInUp {
+from {
+
+    transform: translate3d(0, -100%, 0);
+}
+
+to {
+
+    transform: translate3d(0, 0, 0);
+}
 }
 
 .message-container {
@@ -161,17 +157,18 @@ select:disabled {
 .dialog-container {
     z-index: 110;
     width: 600px;
+    max-height: 100%;
     position: relative;
     background: #fff;
     top: 50%;
     margin: 0 auto;
     padding: 0;
     transform: translateY(-50%);
-    box-shadow: 0 0px 5px 3px rgba(0, 0, 0, 0.3);
-
     .dialog-content {
         position: relative;
-
+        background: #fff;
+        margin-bottom: 20px;
+        box-shadow: 0 0px 5px 3px rgba(0, 0, 0, 0.3);
         .dialog-close {
             position: absolute;
             right: 0;
@@ -182,7 +179,9 @@ select:disabled {
             cursor: pointer;
         }
         .dialog-title {
-            padding: 20px
+            padding: 20px;
+            border-bottom: 1px solid #ccc;
+            font-size: 16px;
         }
 
         .content {

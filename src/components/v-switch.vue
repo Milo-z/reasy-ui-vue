@@ -1,7 +1,7 @@
 <template>
 
     <div class="form-swicth form-el-content" v-show="dataKey.show">
-        <span class="switch-item" @click="setCheckbox()" :class="checked ? 'checked' : ''"></span>
+        <span class="switch-item" :name="dataKey.name" @click="setCheckbox()" :class="checked ? 'checked' : ''"></span>
         <span>{{dataKey.title}}</span>
     </div>
 
@@ -15,9 +15,12 @@ let defaults = {
     ignore: true, //是否忽略
     disabled: false, //是否禁用
     val: "", //组件id
+    immediate: false,
+    name: "",
     values: [true, false],
     title: "", //描述
-    changeCallBack: function() {}
+    changeCallBack: function() {},
+    beforeChange: function() {}
 };
 
 export default {
@@ -29,17 +32,22 @@ export default {
     },
     data() {
         return {
-            checked: false
+            checked: false,
+            firstChange: false,
         };
     },
     mounted() {
-
     },
     methods: {
         setCheckbox() {
-            if(this.disabled) {
+            if(this.dataKey.disabled) {
                 return;
             }
+
+            if(this.dataKey.beforeChange() === false) {
+                return;
+            }
+            this.firstChange = true;
             this.checked = !this.checked;
             this.dataKey.val = this.checked ? this.dataKey.values[0] : this.dataKey.values[1];
         }
@@ -47,9 +55,18 @@ export default {
     watch: {
         'dataKey.val': {
             handler(newValue, oldValue) {
-                this.dataKey.changeCallBack && this.dataKey.changeCallBack(newValue);
+                if(newValue === "") {
+                    return;
+                }
+                if(newValue === this.dataKey.values[0]) {
+                    this.checked = true;
+                } else {
+                    this.checked = false;
+                }
+                if(this.dataKey.immediate || this.firstChange) {
+                    this.dataKey.changeCallBack(this.dataKey.val); 
+                }
             },
-            //立即执行
             immediate: true
         }
     }

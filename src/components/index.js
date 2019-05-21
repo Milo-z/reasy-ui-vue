@@ -75,19 +75,6 @@ const install = function(Vue) {
     const MessageBoxInstance = Vue.extend(msgboxVue);
     function showDialog(msgOptions, hasCancel) {
 
-        let defaults = {
-            title: "提示",
-            isShowMessageBox: false,
-            parseHtml: false,
-            okText: "确定",
-            cancelText: "取消",
-            content: "",
-            resolve: '',
-            reject: '',
-            hasCancel: true,
-            promise: '' // 保存promise对象
-        };
-
         let currentMsg,
             msgBoxEl;
         if(!msgBox) {
@@ -100,13 +87,16 @@ const install = function(Vue) {
            // Vue.extend(currentMsg, defaults);
         }
 
-        if(typeof msgOptions.content == "object" && msgOptions.content.nodeType === 1) {
-            msgOptions.content = msgOptions.content.outerHTML;
-            msgOptions.parseHtml = true;
-        }
+        
         if (typeof msgOptions === 'string') {
             currentMsg.content = msgOptions;
         } else if (typeof msgOptions === 'object') {
+
+            if(typeof msgOptions.content == "object" && msgOptions.content.nodeType === 1) {
+                msgOptions.content = msgOptions.content.outerHTML;
+                msgOptions.parseHtml = true;
+            }
+
             Object.assign(currentMsg, msgOptions);
         }
 

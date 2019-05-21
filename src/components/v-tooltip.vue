@@ -24,25 +24,39 @@
 			};
 		},
 		mounted() {
-			console.log("mounted");
+			
 		},
 		updated() {
-			let clientRect = this.$refs.tooltip.getBoundingClientRect(),
-				bodyWidth = document.body.clientWidth,
-				bodyHeight = document.body.clientHeight;
 			
-			//当右边超出屏幕宽度时
-			if(clientRect.right > bodyWidth) {
-				this.left = this.left - this.$refs.tooltip.offsetWidth * 2 - 10;
-			}
-			
-			//当下方超出屏幕高度时
-			if(clientRect.bottom > bodyHeight) {
-				this.top = this.top - this.$refs.tooltip.offsetHeight;
-			}
 			
 		},
-        
+		methods: {
+			updatePosition() {
+				let clientRect = this.$refs.tooltip.getBoundingClientRect(),
+					bodyWidth = document.body.clientWidth,
+					bodyHeight = document.body.clientHeight;
+					
+				this.top = this.top - this.$refs.tooltip.offsetHeight;
+				//当右边超出屏幕宽度时
+				if(clientRect.right > bodyWidth) {
+					this.left = this.left - this.$refs.tooltip.offsetWidth * 2 - 10;
+				}
+				
+				//当下方超出屏幕高度时
+				if(clientRect.bottom > bodyHeight) {
+					this.top = this.top - this.$refs.tooltip.offsetHeight;
+				}
+			}
+		},
+        wathch: {
+			"show": {
+				handler(newValue, oldValue) {
+					if(newValue === true) {
+						this.updatePosition();
+					}
+				}
+			}
+		},
 		destroyed() {
 
 		}

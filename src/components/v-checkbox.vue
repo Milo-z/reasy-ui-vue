@@ -11,6 +11,7 @@
                 <label
                     class="form-checkbox"
                     @click.stop="changeSelectedAll()"
+                    :name="dataKey.name"
                 >
                     <span
                         class="checkbox-item"
@@ -34,6 +35,7 @@
                     @click.stop="changeCheckbox(index, item.selectAll)"
                     :data-index="index"
                     :key="item.key"
+                    :name="dataKey.name"
                 >
                     <span
                         class="checkbox-item"
@@ -44,13 +46,14 @@
             </template>
         </template>
         <template v-else>
-            <label class="form-checkbox" @click.stop="changeCheckbox()">
+            <label class="form-checkbox" @click.stop="changeCheckbox()" :name="dataKey.name">
                 <input
                     type="checkbox"
                     class="none"
                     ref="v-checkbox"
                     v-show="false"
                     :checked="getChecked()"
+                    
                 >
                 <span
                     class="checkbox-item"
@@ -74,6 +77,7 @@ let defaults = {
     values: [true, false], //选中和不选中 默认用options的数据
     error: "",
     hasSelectAll: false, //是否有全选  组存在
+    immediate: true,
     sortArray: [/*{
         title: "",
         value: "",
@@ -142,6 +146,9 @@ export default {
                 this.dataKey.val = valArr;
                 //this.checkData(this.dataKey, valArr);
             }
+            if(!this.dataKey.immediate) {
+                this.dataKey.changeCallBack();
+            }
         },
         changeSelectedAll() {
             
@@ -153,6 +160,9 @@ export default {
                 }); 
             }
             this.dataKey.val = valArr;
+            if(!this.dataKey.immediate) {
+                this.dataKey.changeCallBack();
+            }
         },
         getChecked(value, index) {
             if (!this.groups) {
@@ -173,16 +183,17 @@ export default {
         "dataKey.val": {
             handler(newValue, oldValue) {
                 //全选
-                if(newValue.length === this.dataKey.sortArray.length) {
+                if(newValue && newValue.length === this.dataKey.sortArray.length) {
                     this.selectedAll = true;
                 } else {
                     this.selectedAll = false;
                 }
-                this.dataKey.changeCallBack &&
-                    this.dataKey.changeCallBack(newValue);
-            }
+                if(this.dataKey.immediate) {
+                    this.dataKey.changeCallBack();
+                }
+            },
             //立即执行
-           // immediate: true
+            immediate: true
         }
     }
 };

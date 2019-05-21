@@ -1,6 +1,6 @@
 <template>
     <div class="button-item" v-if="show !== false">
-        <button class="btn" :class="css" @click.stop="clickCallBack()">{{title}}</button>
+        <button :name="name" class="btn" :class="{[css]: css, 'disabled': disabled}" @click.stop="clickCallBack()">{{title}}</button>
     </div>
 </template>
 
@@ -9,7 +9,7 @@
 
 export default {
     name: "v-button",
-    props: ["title", "css", "callback", "show"],
+    props: ["title", "css", "callback", "show", "disabled", "name"],
     created() {
 
     },
@@ -20,8 +20,11 @@ export default {
     },
     methods: {
         clickCallBack() {
+            if(this.disabled === true) {
+                return;
+            }
             if(typeof this.callback == "function") {
-               this.callback();
+               this.callback(arguments);
             }
         }
     }
@@ -34,6 +37,11 @@ export default {
         display: inline-block;
         & + .button-item {
             margin-left: 20px;
+        }
+        .btn.disabled {
+            background: #ebebe4 !important;
+            cursor: not-allowed;
+            color: #aaa;
         }
     }
 </style>

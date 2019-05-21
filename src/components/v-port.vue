@@ -1,7 +1,7 @@
 <template>
-    <div class="form-port-content form-group">
+    <div class="form-port-content form-group" :class="dataPort.hasSelectAll ? 'bottm-50':''">
         <div class="form-port-list">
-            <div class="form-port-group" v-for="item in portList" :key="item.index[0]">
+            <div class="form-port-group" v-for="item in portList" :key="item.index[0]" :name="dataPort.name">
                 <span>{{item.index[0]}}</span>
                 <div
                     class="port-content"
@@ -29,25 +29,25 @@
                             <div class="form-port-top"></div>
                             <div class="form-port-body"></div>
                         </div>
-                        <div class="port-text">已选</div>
+                        <div class="port-text">Selected</div>
                     </div>
                     <div class="form-port-group">
                         <div class="port-content">
                             <div class="form-port-top"></div>
                             <div class="form-port-body"></div>
                         </div>
-                        <div class="port-text">未选</div>
+                        <div class="port-text">Not selected</div>
                     </div>
                     <div class="form-port-group" v-if="dataPort.disabled.length > 0">
                         <div class="port-content disabled">
                             <div class="form-port-top"></div>
                             <div class="form-port-body"></div>
                         </div>
-                        <div class="port-text">不可选</div>
+                        <div class="port-text">Disabled</div>
                     </div>
                 </div>
 
-                <div class="form-port-group" v-for="item in consoleList" :key="item.index">
+                <div class="form-port-group" v-for="item in consoleList" :key="item.index" :name="dataPort.name">
                     <div
                         class="port-content"
                         @click="clickPort(item.index)"
@@ -57,6 +57,9 @@
                     </div>
                     <span>{{item.index}}</span>
                 </div>
+            </div>
+            <div v-if="dataPort.hasSelectAll" class="select-all-group">
+                <v-button  :title="isSelected ? '取消全选': '全选'" :callback="selectAllPort"></v-button>
             </div>
         </div>
     </div>
@@ -69,8 +72,10 @@ let defaults = {
     consolePort: 4,
     isClick: true,
     val: [],
+    name: "",
     disabled: [],
-    legend: false
+    legend: false,
+    hasSelectAll: true
 };
 export default {
     name: "v-port",
@@ -91,12 +96,17 @@ export default {
                 )
             });
         }
+
+        if(this.singleVal) { //单选时，去掉全选按钮
+            this.hasSelectAll = false;
+        }
     },
     data() {
         return {
             legend: this.dataPort.legend,
             portList: [],
-            consoleList: []
+            consoleList: [],
+            isSelected: false,
         };
     },
     methods: {
@@ -126,6 +136,7 @@ export default {
                     this.dataPort.val.push(portIndex);
                 } else {
                     this.dataPort.val.splice(index, 1);
+                    this.isSelected = false;
                 }
             } else {
                 if (index == -1) {
@@ -134,6 +145,27 @@ export default {
                 } else {
                     this.dataPort.val = [];
                 }
+            }
+        },
+
+        getAllPort() {
+            let maxPort = this.dataPort.portNum,
+                portArr = [];
+            for(let i = 1; i <= maxPort; i++ ) {
+                if(this.getDisabled(i)) {
+                    continue;
+                }
+                portArr.push(String(i));
+            }
+            return portArr;
+        },
+        selectAllPort() {
+            this.isSelected = !this.isSelected;
+
+            if(this.isSelected) {
+                this.dataPort.val = this.getAllPort();
+            } else {
+                this.dataPort.val = [];
             }
         }
     }
@@ -144,15 +176,26 @@ export default {
 .form-port-content {
     text-align: center;
     position: relative;
+    &.bottm-50 {
+        margin-bottom: 50px;
+    }
 }
 .form-port-list {
     display: inline-block;
     padding: 10px 20px;
     border: 1px solid #ccc;
+    position: relative;
+    .select-all-group {
+        position: absolute;
+        top: 100%;
+        margin: 10px 0;
+        left: 0;
+    }
 }
 .form-console-group {
     display: inline-block;
     position: relative;
+    left: 14px;
     .port-legend {
         text-align: left;
         position: absolute;
@@ -163,9 +206,7 @@ export default {
         }
     }
     .port-text {
-        /* float: right;
-            transform: translateY(-100%);
-            margin-top: 50%; */
+        font-size: 1.2rem;
     }
 }
 .form-port-group {
@@ -173,6 +214,9 @@ export default {
     text-align: center;
     display: inline-block;
     width: 30px;
+    .form-port-list > &:nth-child(4n) + .form-port-group {
+        margin-left: 24px;
+    }
     .port-content {
         font-size: 0;
         cursor: pointer;

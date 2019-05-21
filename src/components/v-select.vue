@@ -1,48 +1,57 @@
 <template>
-    <div>
-        <div class="form-el-content form-select" :class="{'error-group': dataKey.error, [dataKey.css]: true}"  v-show="dataKey.show">
-            <div @click.stop="showOption">
-                <input
-                    :readonly="dataKey.hasManual !== true"
-                    type="text"
-                    class="text"
-                    :class="dataKey.css"
-                    v-model="selectLabel"
-                    :disabled="dataKey.disabled"
-                    :data-id-tag="'tag-'"
-                    @keyup="changeValue()"
-                    @blur="setKeyValue()"
-                    :maxlength="dataKey.maxLength"
-                    ref="input"
-                >
-                <div class="select-arrow" :class="dropdownShow ? 'arrow-up' : 'arrow-down'">
-                    <div class="select-arrow-icon v-icon-arrrow-down"></div>
-                </div>
+    <div class="form-el-content form-select" :class="{'error-group': dataKey.error}"  v-show="dataKey.show">
+        <div @click.stop="showOption">
+            <input
+                :readonly="dataKey.hasManual !== true"
+                type="text"
+                class="text"
+                :class="dataKey.css"
+                v-model="selectLabel"
+                :disabled="dataKey.disabled"
+                :name="dataKey.name"
+                @keyup="changeValue()"
+                @blur="setKeyValue()"
+                :maxlength="dataKey.maxlength"
+                ref="input"
+            >
+            <div class="select-arrow" :class="dropdownShow ? 'arrow-up' : 'arrow-down'">
+                <div class="select-arrow-icon v-icon-arrrow-down"></div>
             </div>
-            <transition>
-                <ul class="select-dropdown" v-if="dropdownShow && !dataKey.disabled">
-                    <template v-for="item in dataKey.sortArray">
-                        <li
-                            :value="item.value"
-                            :key="item.value"
-                            class="select-li"
-                            :class="{'active': dataKey.val == item.value, 'disabled': item.disabled}"
-                            @click.stop="changeSelect(item.value, item.title)"
-                        >{{item.title}}</li>
-                    </template>
-                    <li
-                        v-if="dataKey.hasManual"
-                        class="select-li"
-                        @click.stop="hanlderManual()"
-                    >{{dataKey.manualText}}</li>
-                </ul>
-            </transition>
-            <div class="error-bottom text-error" v-if="dataKey.error">{{dataKey.error}}</div>
         </div>
+        <transition>
+            <ul class="select-dropdown" v-show="dropdownShow && !dataKey.disabled">
+                <template v-for="item in dataKey.sortArray">
+                    <li
+                        v-if="isObject(item)"
+                        :value="item.value"
+                        :key="item.value"
+                        class="select-li"
+                        :class="{'active': dataKey.val == item.value, 'disabled': item.disabled}"
+                        @click.stop="changeSelect(item.value, item.title)"
+                    >{{item.title}}</li>
+                    <li v-else
+                        :value="item"
+                        :key="item"
+                        class="select-li"
+                        :class="{'active': dataKey.val == item, 'disabled': item.disabled}"
+                        @click.stop="changeSelect(item, item)"
+                    >{{item}}</li>
+                </template>
+                <li
+                    v-if="dataKey.hasManual"
+                    class="select-li"
+                    @click.stop="hanlderManual()"
+                >{{dataKey.manualText}}</li>
+            </ul>
+        </transition>
+        <div class="error-bottom text-error" v-if="dataKey.error">{{dataKey.error}}</div>
     </div>
 </template>
 
 <script>
+
+import { isObject } from "./libs";
+
 let defaults = {
     required: true,
     css: "", //样式
@@ -50,9 +59,11 @@ let defaults = {
     ignore: false, //是否忽略
     disabled: false, //是否禁用
     hasManual: false, //是否支持自定义
-    manualText: "自定义",
+    manualText: _("Manual"),
     maxLength: "", //输入框最大输入长度
     error: "", //错误
+    name: "",
+    immediate: true,
     sortArray: [
         /* {
             value: xxx,
@@ -62,7 +73,8 @@ let defaults = {
     val: "", //组件id
     valid: [], //数据验证 仅自定义时生效
     options: {}, //options 和sortArray 同时存在时优先以sortArray存在
-    changeCallBack: function() {}
+    changeCallBack: function() {},
+    beforeChange: function() {}
 };
 
 let MANUAL_VALUE = "-1";
@@ -99,16 +111,24 @@ export default {
         this.globalEvent("click", this.hide);
     },
     methods: {
+        isObject(obj) {
+            return isObject(obj);
+        },
         changeSelect(value, label) {
 
             this.dropdownShow = false;
             if (value === this.dataKey.val) {
                 return;
             }
+            if(this.dataKey.beforeChange(value) === false) {
+                return;
+            }
             this.dataKey.error = '';
             this.dataKey.val = value;
             this.selectLabel = label;
-            this.dataKey.changeCallBack(value);
+            if(!this.dataKey.immediate) {
+                this.dataKey.changeCallBack(value);
+            }
         },
         showOption() {
             if(!this.dataKey.disabled) {
@@ -167,7 +187,6 @@ export default {
         },
         check(dataObj) {
 
-            //todo: 必须全局绑定 checkData
             if(typeof this.$checkData == "function") {
                 return this.$checkData(dataObj, this.selectLabel);
             }
@@ -178,14 +197,20 @@ export default {
     },
     destroyed() {
         this.globalRemoveEvent("click", this.hide);
+        this.dataKey.error = "";
     },
     watch: {
         "dataKey.val": {
             handler(newValue, oldValue) {
+                if(newValue === undefined || newValue === "") {
+                    return;
+                }
                 try {
                     this.setInputValue();
                 } catch(e) {}
-                
+                if(this.dataKey.immediate && !this.dataKey.hasManual) {
+                    this.dataKey.changeCallBack(newValue);
+                }
             },
             //立即执行
             immediate: true
@@ -231,6 +256,7 @@ export default {
         box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
         box-sizing: border-box;
         margin: 5px 0;
+        text-align: left;
         z-index: 99;
         .select-li {
             padding: 6px;

@@ -1,9 +1,9 @@
 <template>
-    <div class="form-el-content" v-show="dataKey.show" :class="{'error-group': dataKey.error}">
+    <div class="form-el-content" v-show="dataKey.show" :class="{'error-group': dataKey.error, [dataKey.css]: true}">
         <template v-for="item in dataKey.sortArray">
-            <label class="form-radio" @click.stop="changeRadio(item.value)" :key="item.value">
+            <label class="form-radio" @click.stop="changeRadio(item.value)" :key="item.value" :name="dataKey.name">
                 <span class="raido-item"
-                    :class='dataKey.val === item.value ? "v-icon-radio-checked" : "v-icon-radio-unchecked"'
+                    :class='radioValue === item.value ? "v-icon-radio-checked" : "v-icon-radio-unchecked"'
                     :value="item.value" >
                 </span>
                 <span class="radio-text">{{item.title}}</span>
@@ -23,6 +23,7 @@ let defaults = {
     disabled: false, //是否禁用
     val: "", //组件id
     error: "",
+    name: "",
     sortArray: [/*{
         value: xxx,
         title: ""
@@ -49,17 +50,37 @@ export default {
     },
     data() {
         return {
-            error: ""
+            error: "",
+            radioValue: ""
         };
     },
     methods: {
         changeRadio(value) {
             this.dataKey.error = "";
-            if(value === this.dataKey.val) {
+            if(value === this.radioValue) {
                 return;
             }
-            this.dataKey.val = value;
-            this.dataKey.changeCallBack(value);
+            this.dataKey.val = this.radioValue = value;
+        }
+    },
+    watch: {
+        "dataKey.val": {
+            //! TODO: 改变值 不执行watch？
+            handler(newValue, oldValue) {
+                if(newValue !== "" && newValue!== undefined ) {
+                    this.radioValue = newValue;
+                }
+            },
+            //立即执行
+            immediate: true
+        },
+        "radioValue": {
+            handler(newValue, oldValue) {
+                this.dataKey.changeCallBack && this.dataKey.changeCallBack(newValue);
+
+            },
+            //立即执行
+            immediate: true
         }
     }
 

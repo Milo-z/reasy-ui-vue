@@ -118,6 +118,10 @@ function checkSubmit(dataObj) {
     return true;
 }
 
+function isObject(obj) {
+    return Object.prototype.toString.call(obj) === '[object Object]';
+}
+
 /**
  * 检查元素的数据合法性
  * @param {object} dataKey 元素对象
@@ -252,5 +256,7 @@ export {
     copyDeepData,
     formMessage,
     checkData,
-    checkSubmit
+    checkSubmit,
+    isDefined,
+    isObject
 };

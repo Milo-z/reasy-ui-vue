@@ -26,11 +26,11 @@
 	export default {
 		data() {
 			return {
-				title: "提示",
+				title: _("Tips"),
 				isShowMessageBox: false,
 				parseHtml: false,
-				okText: "确定",
-				cancelText: "取消",
+				okText: _("OK"),
+				cancelText: _("Cancel"),
 				content: "",
 				resolve: '',
 		        reject: '',
@@ -45,6 +45,10 @@
         	},
         	cancel() {
 				this.isShowMessageBox = false;
+				if(this.hasCancel) { //todo: 处理没有reject的情况
+					this.reject(false);
+				}
+				
         	},
         	showMsgBox() {
         		this.isShowMessageBox = true;

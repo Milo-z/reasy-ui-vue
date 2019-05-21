@@ -20,7 +20,7 @@ module.exports = merge(baseConfig, {
             root: path.join(__dirname, "../")
         }),
 
-         /*new UglifyJsPlugin({
+         /* new UglifyJsPlugin({
 
             minify(file, sourceMap) {
 
@@ -77,6 +77,6 @@ module.exports = merge(baseConfig, {
                 return { error, map, code, warnings, extractedComments };
             }
 
-        })*/
+        }) */
     ]
 })

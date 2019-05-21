@@ -12,7 +12,7 @@
 let defaults = {
     required: false,
     css: "", //样式
-    title: "提示",
+    title: _("Tips"),
     hasCancel: false,
     show: false, //是否显示
     ignore: true, //是否忽略

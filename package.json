@@ -1,6 +1,6 @@
 {
   "name": "@reasy-team/reasy-ui-vue",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "main": "dist/reasy-ui-vue.js",
   "author": "milo.z",
   "license": "ISC",
@@ -8,7 +8,7 @@
     "build": "webpack --env.NODE_ENV=publish --color --config build/webpack.build.js --mode production"
   },
   "devDependencies": {
-	"vue": "^2.5.17",
+    "vue": "^2.5.17",
     "autoprefixer": "^9.3.1",
     "babel": "^6.23.0",
     "babel-core": "^6.26.3",

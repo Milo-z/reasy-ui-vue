@@ -22,12 +22,22 @@ const install = function (Vue) {
                 el.addEventListener("mouseenter", function (event) {
 
                     tooltipBox.parseHtml = !!this.getAttribute("parse-html");
-                    tooltipBox.content = binding.value;
-                    tooltipBox.show = true;
+                    if(binding.value) {
+                        tooltipBox.content = binding.value;
+                    } else {
+                        if(this.querySelector("[v-tooltip]")) {
+                            tooltipBox.content = this.querySelector("[v-tooltip]").getAttribute("v-tooltip");
+                        } else {
+                            tooltipBox.content = "";
+                        }
+                    }
+                    
                     tooltipBox.left = event.pageX;
-                    tooltipBox.top = event.pageY - 30; //当前位置 - 目标高度
+                    tooltipBox.top = event.pageY; //当前位置 - 目标高度
                     tooltipBox.relativeWidth = event.target.offsetWidth;
                     tooltipBox.relativeHeight = event.target.offsetHeight;
+                    tooltipBox.show = true;
+                    tooltipBox.updatePosition();
                     //console.log("event.relatedTarget", vnode.context);
                     //vnode.context[binding.expression](event);
 
@@ -37,9 +47,6 @@ const install = function (Vue) {
                 });
 
 
-            },
-            updated(el) {
-                console.log("update");
             }
         }
     };

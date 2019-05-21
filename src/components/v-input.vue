@@ -6,12 +6,12 @@
             :placeholder="dataKey.placeholder"
             :disabled="dataKey.disabled"
             class="text"
+            :name="dataKey.name"
             :class="{'text-password':dataKey.hasEye}"
             @input="changeValue()"
             v-model="dataKey.val"
             ref="input"
         >
-
         <div
             class="placeholder-text"
             v-if="!supportPlaceholder && !dataKey.val"
@@ -36,6 +36,7 @@ let defaults = {
     type: "text",
     placeholder: "",
     hasEye: "",
+    name: "",
     val: "", //组件value
     error: "", //错误标志
     valid: [
@@ -43,7 +44,8 @@ let defaults = {
             type: "ssid",
             args: [1, 2]
         }*/
-    ]
+    ],
+    changeCallBack: function() {}
 };
 export default {
     name: "v-input",
@@ -77,7 +79,7 @@ export default {
             }
             
              
-            this.dataKey.changeCallback && this.dataKey.changeCallback(this.dataKey.val);
+            this.dataKey.changeCallBack(this.dataKey.val);
             this.$emit("custom-event", this.dataKey.val);
         },
         hasPlaceholder() {
@@ -96,7 +98,7 @@ export default {
         }
     },
     destroyed() {
-        
+        this.dataKey.error = "";
     }
 };
 </script>

@@ -15,7 +15,7 @@ export default {
     data() {
         return {
             selected: this.rowData.selected == "1"
-        }
+        };
     },
     methods: {
         changeBack() {
@@ -24,7 +24,8 @@ export default {
                 let params = {
                     type: "checkbox",
                     index: this.index,
-                    rowData: this.rowData
+                    rowData: this.rowData,
+                    originData: this.originData
                 };
                 this.$emit("on-custom-comp", params);
         }

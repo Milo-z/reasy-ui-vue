@@ -11,7 +11,7 @@
 					<div class="content">
 						<slot></slot>
 					</div>
-					<div class="btn-group">
+					<div class="btn-group" v-if="dialog.hasCancel !== false || dialog.hasOK !== false">
 						<v-button v-if="dialog.hasCancel !== false" :callback="handlerCancel" :title="dialog.cancelText"></v-button>
 						<v-button v-if="dialog.hasOK !== false" :callback="handlerOK" css="btn-primary" :title="dialog.okText"></v-button>
 						
@@ -29,8 +29,8 @@
 		title: "",
 		hasOK: true,
 	    hasCancel: true,
-	    okText: "确定",
-	    cancelText: "取消",
+	    okText: _("OK"),
+	    cancelText: _("Cancel"),
 	    show: true, //是否显示
 	    ignore: true, //是否忽略
 	    okCallBack: function() {},

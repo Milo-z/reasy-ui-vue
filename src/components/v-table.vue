@@ -3,18 +3,30 @@
         <div class="table-search" v-if="tableOptions.search">
             <input
                 type="text"
-                placeholder
+                :placeholder="searchText"
                 class="text form-search-input"
                 v-model="searchValue"
                 @keyup.enter="goSearch()"
             >
             <span class="v-icon-search" @click="goSearch()"></span>
         </div>
-        <table class="table table-fixed" :style="{'padding-right': tableScroll ? '17px' : ''}">
+        <table
+            class="table table-fixed table-header"
+            :style="{'padding-right': tableScroll ? '17px' : ''}"
+        >
             <thead>
+                <tr v-if="tableOptions.secondColumns.length > 0">
+                    <th
+                        :width="columns.width"
+                        :colspan="columns.colspan"
+                        :rowspan="columns.rowspan"
+                        v-for="(columns) in tableOptions.secondColumns"
+                        :key="columns.field"
+                    >{{columns.title}}</th>
+                </tr>
                 <tr>
                     <th width="50px" v-if="tableOptions.selectBox">
-                        <span class="select-box" >
+                        <span class="select-box">
                             <v-checkbox :data-key="checkbox"></v-checkbox>
                         </span>
                     </th>
@@ -22,8 +34,8 @@
                         :width="columns.width"
                         v-for="(columns) in tableOptions.columns"
                         :key="columns.field"
+                        v-if="columns.title"
                     >
-                        
                         <span
                             :class="{'pointer': columns.sort}"
                             @click="sortTable(columns, columns.field)"
@@ -44,12 +56,8 @@
         <div class="table-body" :style="{'height': bodyHeight + 'px'}">
             <table class="table table-fixed" ref="table-body">
                 <tbody>
-                    <tr
-                        ref="table-body-tr"
-                        v-for="(rowsData) in pageData"
-                        
-                    >
-                        <td class="select-box" style="width: 50px"  v-if="tableOptions.selectBox">
+                    <tr ref="table-body-tr" v-for="(rowsData) in pageData">
+                        <td class="select-box" style="width: 50px" v-if="tableOptions.selectBox">
                             <component
                                 :is="'table-checkbox'"
                                 @on-custom-comp="customCompFunc"
@@ -61,23 +69,19 @@
                             ></component>
                         </td>
                         <template v-for="(columns, index) in tableOptions.columns">
-                            <td
-                                v-if="!columns.componentName"
-                                :style="{'width': columns.width}"
-                            >
-                                <div
+                            <td v-if="!columns.componentName" :style="{'width': columns.width}" class="fixed">
+                                <span
                                     v-if="columns.parseHtml"
                                     v-html="rowsData[columns.field]"
-                                    :class="columns.css"
-                                    class="fixed"
-                                ></div>
-                                <div
+                                    v-tooltip=""
+                                    :class="columns.css"  
+                                ></span>
+                                <span
                                     v-else
                                     v-tooltip="rowsData[columns.field]"
                                     style="cursor: text"
                                     :class="columns.css"
-                                    class="fixed"
-                                >{{rowsData[columns.field]}}</div>
+                                >{{rowsData[columns.field]}}</span>
                             </td>
                             <!--自定义组件-->
                             <td
@@ -85,7 +89,6 @@
                                 :class="columns.css"
                                 class="fixed"
                                 :style="{'width': columns.width}"
-                          
                             >
                                 <component
                                     :is="columns.componentName"
@@ -101,8 +104,10 @@
                         </template>
                     </tr>
                     <tr v-if="pageData.length === 0">
-                        <td :colspan="tableOptions.selectBox ? tableOptions.columns.length + 1 : tableOptions.columns.length">
-                            <div class="table-no-data">没有数据</div>
+                        <td
+                            :colspan="tableOptions.selectBox ? tableOptions.columns.length + 1 : tableOptions.columns.length"
+                        >
+                            <div class="table-no-data">{{noData}}</div>
                         </td>
                     </tr>
                 </tbody>
@@ -116,7 +121,7 @@
                 <span>共{{tableData.length || 0}}个，{{tableOptions.totalPage}}页，当前第{{tableOptions.page + 1}}页</span>
             </div>
             <div class="footer-page">
-                <a class="table-btn" @click="gotoPage('prev')" v-show="tableOptions.page > 0">上一页</a>
+                <a class="table-btn" @click="gotoPage('prev')" v-show="tableOptions.page > 0">&lt;</a>
                 <a
                     class="table-btn"
                     :class="{'active': footerBtn.value == tableOptions.page}"
@@ -128,7 +133,7 @@
                     class="table-btn"
                     @click="gotoPage('next')"
                     v-show="tableOptions.page < (tableOptions.totalPage-1)"
-                >下一页</a>
+                >&gt;</a>
             </div>
         </div>
     </div>
@@ -140,12 +145,14 @@ const PAGE_PREV_NUM = 2; //当前页前后显示页数
 const MAX_PAGE_SHOW = 2 * PAGE_PREV_NUM + 1 + 2 + 2; // 前后页 + 本身页 + 2个省略 + 首尾两页
 
 let defaults = {
+    secondColumns: [],
     columns: [
         /*
         {
             title: "无线名称",
             field: "ssid",
             width: "40%",
+            search: //是否支持搜索
             sort: true/false, //是否支持排序
             format:function() {return str},
             parseHtml: true/false, // 是否是html
@@ -163,8 +170,8 @@ let defaults = {
     sortOpt: {}, //元素排序顺序
     sortOrder: [], //默认排序顺序
     search: false,
+    placeholder: "",
     originData: [],
-    searchItem: [],
     selectBox: false
 };
 
@@ -193,12 +200,12 @@ let filterTable = (tableData, filterStr, field) => {
     tableData.forEach(function(item) {
         for (let prop in item) {
             if (field.length > 0) {
-                if(field.indexOf(prop) != -1) {
-                    if (fileterField(filterStr, item[field])) {
+                if (field.indexOf(prop) != -1) {
+                    if (fileterField(filterStr, item[prop])) {
                         newTable.push(item);
+                        break;
                     }
                 }
-                
             } else {
                 if (fileterField(filterStr, item[prop])) {
                     newTable.push(item);
@@ -218,14 +225,21 @@ export default {
         //数据合并
         this.tableOptions = this.setOptions(this.tableOptions, defaults);
 
-        let _this = this;
+        let _this = this,
+            placeholderArr = [];
         this.tableOptions.columns.forEach(function(item) {
             if (typeof item.format == "function") {
                 _this.formatOpt[item.field] = item.format;
             }
+            if(item.search) {
+                _this.searchItem.push(item.field);
+                placeholderArr.push(item.title);
+            }
         });
-        if(!Array.isArray(this.tableOptions.searchItem)) {
-            this.tableOptions.searchItem = this.tableOptions.searchItem.split(",");
+        if(this.tableOptions.placeholder) { //优先以用户定义为准
+            this.searchText = this.tableOptions.placeholder;
+        } else {
+            this.searchText = placeholderArr.join("/");
         }
     },
 
@@ -245,6 +259,9 @@ export default {
             sortType: "",
             searchValue: "", //搜索文字
             bodyHeight: "",
+            noData: _("No Data"),
+            searchItem: [],
+            searchText: "",
             checkbox: {
                 values: ["1", "0"],
                 val: "",
@@ -264,11 +281,13 @@ export default {
             if (this.searchValue == "") {
                 this.tableData = this.originData;
             } else {
-                this.tableData = filterTable(this.originData, this.searchValue, this.tableOptions.searchItem);
+                this.tableData = filterTable(
+                    this.originData,
+                    this.searchValue,
+                    this.searchItem
+                );
             }
-
             this.sortType = "";
-
             this.updateTable();
         },
 
@@ -302,7 +321,7 @@ export default {
         updateScroll() {
             //计算滚动条显示
             this.$nextTick(function() {
-                if((this.$refs["table-body-tr"]||[]).length === 0) {
+                if ((this.$refs["table-body-tr"] || []).length === 0) {
                     return;
                 }
                 let trHeight = this.$refs["table-body-tr"][0].offsetHeight;
@@ -446,10 +465,10 @@ export default {
             this.tableOptions.page = nextPage;
             //当前页数据
             this.pageData = this.getPageData();
-            
+
             //切换页面时，清除选中
-            if(this.tableOptions.selectBox){
-                this.pageData.forEach(item => this.$set(item,"selected", "0"));
+            if (this.tableOptions.selectBox) {
+                this.pageData.forEach(item => this.$set(item, "selected", "0"));
                 this.checkbox.val = "0";
             }
             this.updateFooter();
@@ -537,10 +556,21 @@ export default {
             this.originData = newTableArr;
         },
         changeSelectAll() {
-            this.pageData.forEach(item => this.$set(item,"selected", this.checkbox.val));
+            this.pageData.forEach(item =>
+                this.$set(item, "selected", this.checkbox.val)
+            );
+            let selectArr = [],
+                tableKey = this.tableOptions.key;
+            this.pageData.forEach(item => {
+                selectArr.push(
+                    this.tableOptions.originData.filter(
+                        item1 => item1[tableKey] == item[tableKey]
+                    )[0]
+                );
+            });
             let params = {
                 type: "selectAll",
-                rowsData: this.checkbox.val == "1" ? this.pageData : []
+                rowsData: this.checkbox.val == "1" ? selectArr : []
             };
             this.$emit("on-custom-comp", params);
         }
@@ -555,17 +585,14 @@ export default {
                     return;
                 }
                 this.formatTable();
-    
+
                 this.tableData = copyDeepData(this.originData);
 
                 this.updateTable();
             }
         }
-        
     },
-    destroyed() {
-        
-    }
+    destroyed() {}
 };
 </script>
 
@@ -576,7 +603,7 @@ export default {
     //width: 200px;
     margin-bottom: 15px;
     .form-search-input {
-        width: 150px;
+        width: $elem-width;
         padding-right: 44px;
         border-radius: 6px;
     }
@@ -601,7 +628,7 @@ export default {
 }
 .table-group {
     width: 100%;
-    margin: 10px;
+    margin-top: 10px;
 }
 .table {
     border-collapse: separate;
@@ -609,6 +636,9 @@ export default {
     text-align: center;
     width: 100%;
     max-width: 100%;
+    &.table-header {
+        background: #f2f2f2;
+    }
     &.table-fixed {
         table-layout: fixed;
     }
@@ -631,7 +661,7 @@ export default {
         display: inline-block;
         vertical-align: middle;
     }
-    
+
     .fixed {
         overflow: hidden;
         text-overflow: ellipsis;
