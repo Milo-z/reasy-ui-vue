@@ -24,13 +24,6 @@
 				relativeHeight: 0
 			};
 		},
-		mounted() {
-			
-		},
-		updated() {
-			
-			
-		},
 		methods: {
 			updatePosition() {
 				let clientRect = this.$refs.tooltip.getBoundingClientRect(),

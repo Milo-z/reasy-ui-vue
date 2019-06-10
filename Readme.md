@@ -560,25 +560,33 @@ sortArray 条目的对象如下
 
 ### 输入框
 
-配置
+组件示例： `<v-input :data-key="options"></v-input>`
 
-	required: false,
-    css: "", //样式
-    show: true, //是否显示
-    ignore: false, //是否忽略
-    disabled: false, //是否禁用
-    maxlength: "",
-    type: "text",
-    placeholder: "",
-    hasEye: "",
-    val: "", //组件value
-    error: "", //错误标志
-    valid: [ //
-        /*{
-            type: "ssid",
-            args: [1, 2]
-        }*/
-    ]
+options配置属性
+
+| 参数 | 类型 | 默认值 |意义
+|----|----|----|----
+|required | Boolean | true | 是否必须有值
+|css | String | | 样式
+|show | Boolean | true | 是否显示
+|ignore | Boolean | false | 是否忽略验证，也可用于保存时不提交此项
+|disabled | Boolean | false | 是否禁用，禁用所有
+|val | String or Array | | 值
+|name| String | | 组件名称
+|error | String | | 错误信息
+|maxlength | Number | | 输入框最大允许输入长度
+|type | String | text | 输入框类型
+|placeholder | String | | 输入框占位符
+|hasEye | Boolean | false | 是否有小眼睛
+|valid | Object or Array | | 数据验证类型
+|changeCallBack | Function | | 数据更新后的回调函数
+
+valid
+
+| 参数 | 类型 | 默认值 |意义
+|----|----|----|----
+|type | String |  | 数据验证类型
+|args | Array | | 验证参数
 
 
 valid 为单个验证时，可以为对象，如
@@ -588,110 +596,270 @@ valid 为单个验证时，可以为对象，如
 		args: [1,100]
 	}
 
+	//or
+	valid: [{
+		type: "num",
+		args: [1,100]
+	}]
+
+
 
 示例
 	
-	<v-input :dataKey="login"></v-input>
+	<template>
+		<v-input :data-key="input"></v-input>
+	</template>
 
-	login: {
-		css: "input-small",
-		title: _("Login"),
-		placeholder: "Login Password",
-		key: "",
-		type: "password",
-		valid: {
-			type: "ascii"
+	<script>
+	
+	export default {
+		data() {
+			return {
+				input: {
+					placeholder: "请输入用户名",
+					type: "text",
+					maxlength: 18,
+					name: "username",
+					valid: { //自定义的验证类型
+						type: "user",
+						args: [1, 32]
+					}
+				}
+			}
 		}
-	},
+	}	
+	</script>
 
 
 
 
 ### 开关
 
-默认值
+组件示例： `<v-switch :data-key="options"></v-switch>`
 
-	css: "", //样式
-    show: true, //是否显示
-    ignore: true, //是否忽略
-    disabled: false, //是否禁用
-    val: "", //组件id
-    values: [true, false],
-    title: "", //描述
-    changeCallBack: function() {}
+options配置属性
+
+| 参数 | 类型 | 默认值 |意义
+|----|----|----|----
+|css | String | | 样式
+|show | Boolean | true | 是否显示
+|disabled | Boolean | false | 是否禁用，禁用所有
+|val | String or Array | | 值
+|immediate | Boolean | true | 是否立即执行回调函数
+|name| String | | 组件名称
+|values | Array | [true, false] | 开启和关闭的值
+|changeCallBack | Function |  | 切换开关后执行的回调函数
+|beforeChange | Function | | 切换之前执行的函数，如果返回false，则不执行changeCallBack
 
 
 示例
-	
-	<v-switch :dataKey="formData.switch" ></v-switch>
 
-	switch: {
-		val: false,
-		changeCallBack(value) {
-			console.log("开关 value ",value);
+	<template>
+		<v-switch :data-key="switch"></v-switch>
+	</template>
+
+	<script>
+	
+	export default {
+		data() {
+			return {
+				switch: {
+					css: "swicth",
+					name: "ssidEn",
+					changeCallBack(value) {
+						//your code
+					}	
+					
+				}
+			}
 		}
-	}
+	}	
+	</script>
+
 
 ### 按钮
 
-	开放接口：
+组件示例： `<v-button title="" css="" :callback="click" :show="isShow" :disabled="isDisabled" name="xxx"></v-button>`
 
-	callback: 点击后执行事件 
-	title： 按钮文字
-	css： 按钮样式
-	show： 是否显示，默认显示
+| 参数 | 类型 | 默认值 |意义
+|----|----|----|----
+|title | String | | 按钮文字
+|css | String | | 按钮样式
+|callback | Function |  |  按钮点击事件
+|show | Boolean | true |  按钮是否显示
+|disabled | Boolean | false | 按钮是否禁用
+|name | String | | 按钮名称
 
-	<v-button title="确定" :callback="showDialog" css="btn-primary" show="true"></v-button>
+完整示例：
+
+	<template>
+		<v-button title="保存" css="btn-primary" :callback="submit" :show="isShow" :disabled="isDisabled" name="xxx"></v-button>
+	</template>
+
+	<script>
+	
+	export default {
+		data() {
+			return {
+				isShow： true,
+				isDisabled: false
+			}
+		},
+		methods: {
+			submit() {
+				//your code
+			}
+		}
+	}	
+	</script>
 
 ### 滑块
-	
-配置属性
 
-	min： 最小值
-	max： 最大值
-	value： 当前值 
+组件示例： `<v-slider :data-key="slider"></v-slider>`
+
+`data-key`配置属性
+
+| 参数 | 类型 | 默认值 |意义
+|----|----|----|----
+|css | String | | 样式
+|show | Boolean | true | 是否显示
+|min | Number | 0 | 最小值
+|max | Number | 100 | 最大值
+|immediate | Boolean | true | 是否立即执行回调函数
+|disabled | Boolean | false | 是否禁用
+|changeCallBack | Function | | 切换值后的回调函数
+
+完整示例：
+
+	<template>
+		<v-slider :data-key="slider"></v-slider>
+	</template>
+
+	<script>
 	
-	<v-slider min="1" max="23" v-model="3"></v-slider>
-	
+	export default {
+		data() {
+			return {
+				slider： {
+					min: 10,
+					max: 100,
+					changeCallBack(value) {
+						//your code 
+					}
+				}
+			}
+		}
+	}	
+	</script>
 
 ### 组
 
-	属性：
+左右布局，左边文字，右边为组件
 
-	title: 左边文字
-	css: 样式
+组件标签 `v-group`
 
-	<v-group title="复选框" class="xxxx">
-		xxxxx
-	</v-group>
+| 参数 | 类型 | 默认值 |意义
+|----|----|----|----
+|title | String | | 左边文字
+|css | String | | 自定义样式
+
+组件内部的元素会显示在右侧，配合其他组件使用，如：
+
+	<template>
+		<v-group title="用户名">
+			<v-input :data-key="input"></v-input>
+		</v-group>
+	</template>
+
+	<script>
+	
+	export default {
+		data() {
+			return {
+				input: {
+					placeholder: "请输入用户名",
+					type: "text",
+					maxlength: 18,
+					name: "username",
+					valid: { //自定义的验证类型
+						type: "user",
+						args: [1, 32]
+					}
+				}
+			}
+		}
+	}	
+	</script>
 
 ### 提示信息
 	
-	指令：
-	v-tooltip="xxxx" 
-	xxxx: 显示的提示文字
+鼠标放上去后显示的文字，类似title属性
+
+属性 `v-tooltip`，值为需要显示的信息
+
+示例：
+
+	<div v-tooltip="'随便显示什么'"></div>
+
+当鼠标放到该元素上时，则显示“随便显示什么”
 
 ### 弹出层
 
-	
-	<div>
+自定义弹出框内容，组件名`v-dialog`，
+
+配置属性为
+
+| 参数 | 类型 | 默认值 |意义
+|----|----|----|----
+|title | String | | 弹出框header文字
+|show | Boolean | true | 是否显示
+|css | String | | 自定义样式
+|hasOK | Boolean | true | 是否有确定按钮
+|hasCancel | Boolean | true | 是否有取消按钮
+|okText | String | 确定 | 确定按钮文字
+|cancelText | String | 取消  | 取消按钮文字
+|okCallBack | Function | | 点击确定执行的事件
+|cancelCallBack | Function | | 点击取消执行的事件
+
+
+示例：
+
+	<template>
 		<v-dialog :dialog="dialog">
-			<div>Login XXX1</div>
+			<v-group title="用户名">
+				<v-input :data-key="input"></v-input>
+			</v-group>
 		</v-dialog>
-	</div>
+	</template>
 
-	配置
-
-	required: false,
-    css: "", //样式
-    title: "",
-    hasCancel: true, //是否有取消按钮
-    okText: "确定",
-    cancelText: "取消",
-    show: true, //是否显示
-    ignore: true, //是否忽略
-    okCallBack: function() {},
-    cancelCallBack: function() {}
+	<script>
+	
+	export default {
+		data() {
+			return {
+				dialog: {
+	                okCallBack: this.submit,
+	                css: "port-dialog"
+	            },
+				input: {
+					placeholder: "请输入用户名", 
+					type: "text",
+					maxlength: 18,
+					name: "username",
+					valid: { //自定义的验证类型
+						type: "user",
+						args: [1, 32]
+					}
+				}
+			}
+		},
+		methods: {
+			submit() {
+				//your code
+			}
+		}
+	}	
+	</script>
 
 
 ### 消息提示
@@ -708,45 +876,65 @@ valid 为单个验证时，可以为对象，如
 		//点击确定动作	
 		})；
 	
-	msg: string or object
-
-	object {
-		css: "", //样式
-	    title: "",
-	    hasCancel: true, //是否有取消按钮
-	    okText: "确定",
-	    cancelText: "取消",
-	    show: true, //是否显示
-	    ignore: true, //是否忽略
-	    okCallBack: function() {},
-	    cancelCallBack: function() {}
-	} 
-
 	3、提示框
 
 	this.$message(msg, time);
 
-	msg: string or dom节点
-	time: 显示时间
+以上三种的msg可以为String 或者Object
+
+为Object时，字段如下
+
+| 参数 | 类型 | 默认值 |意义
+|----|----|----|----
+|title | String | | 弹出框header文字
+|parseHtml | Boolean | false | 是否以HTML方式解析
+|okText | String | 确定 | 确定按钮文字
+|cancelText | String | 取消  | 取消按钮文字
+|hasCancel | Boolean | true | 是否有取消按钮
+|content | String or Dom | | 提示的文字或者dom节点
 
 ### 端口配置
 
-	show: true, //是否显示
-    singleVal: false, //是否只允许单个端口
-    portNum: 28, //端口总数量
-    consolePort: 4, //console 端口个数
-    val: []，
-	isClick: true, //是否支持点击
-	disabled: [], //禁用的端口
-	legend: false //是否支持图标类型显示
+组件名称 `v-port`，配置参数
 
-	<v-port :data-port="port"></v-port>
+| 参数 | 类型 | 默认值 |意义
+|----|----|----|----
+|show | Boolean | true | 是否显示
+|singleVal | boolean | false | 是否单选
+|portNum | Number | 28 | 端口个数
+|consolePort | Number | 4 | 串口端口个数
+|isClick | Boolean | true | 是否支持点击
+|val | Array |  | 被选中的端口
+|name | String | | 端口名称
+|disabled | Array |  | 禁用的端口列表
+|legend | Boolean | false | 是否显示端口图例
+|hasSelectAll | Boolean | true | 是否显示全选按钮
 
-	port: {
-		portNum: 28,
-        consolePort: 4,
-        val: ["3"]
-	}
+示例：
 
+	<template>
+		<v-port :data-port="port" :relative-port="relativePort"></v-port>
+	</template>
+
+	export default {
+		data() {
+			return {
+				port: {
+					portNum: 28,
+			        consolePort: 4,
+			        val: ["3"]
+				},
+				relativePort: {
+					"ACC12": ["1", "3", "7"]
+				}
+			}
+		}
+	}	
+	</script>
+
+	
+`relative-port` 为端口组名称，显示哪些端口在同一组，此时配置时，以组为单位
+
+属性为组名称，值为此组内的端口号（同一端口不能在两个组内）
 
 	 
