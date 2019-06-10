@@ -268,11 +268,12 @@ callback 表格更新后的回调
 checkbox 中 on-custom-comp 事件中，参数为对象，其属性为
 
 | 参数 | 类型 | 默认值 |意义
-|---|----|----|
-|type| string | | 事件处理的标志，复选框时 值为checkbox，全选时为selectAll，其他需用户自定义
+|---|----|----|----
+|type | string | | 事件处理的标志，复选框时 值为checkbox，全选时为selectAll，其他需用户自定义
 |index | Number | | 当前第几个
 |rowData | Object | | 此行的数据（经过format转换后的数据）
-|originData| Object | | 原始数据 
+|originData | Object | | 原始数据 
+
 
 见下示例中的`customCompFunc`
 
@@ -353,8 +354,9 @@ checkbox 中 on-custom-comp 事件中，参数为对象，其属性为
 
 支持下拉框自定义和手动输入
 
+
 | 参数 | 类型 | 默认值 |意义
-|---|----|----|
+|---|----|----|----
 |required | Boolean | true | 是否必须输入
 |css | String | | 样式
 |show | Boolean | true | 是否显示
@@ -363,7 +365,7 @@ checkbox 中 on-custom-comp 事件中，参数为对象，其属性为
 |hasManual | Boolean | false | 是否支持手动输入
 |manualText | String | 自定义| 手动输入时，下拉列表手动输入的文字
 |maxlength | Number | | 手动输入时最大输入长度
-|error | String | |错误信息
+|error | String | | 错误信息
 |name | String | | 下拉框的name，用于自动化
 |defaultVal | String | | 下拉框的默认值
 |immediate | Boolean | true | 是否立即执行回调函数
@@ -431,9 +433,8 @@ sortArray的两种配置
 支持单个复选框和多个复选框，使用属性为 :data-key="xxxx"
 
 
-
 | 参数 | 类型 | 默认值 |意义
-|---|----|----|
+|---|----|----|----
 |required | Boolean | false | 是否必须有值
 |css | String | | 样式
 |show | Boolean | true | 是否显示
@@ -451,7 +452,7 @@ sortArray的两种配置
 sortArray数组字段
 
 | 参数 | 类型 | 默认值 |意义
-|---|----|----|
+|---|----|----|----
 |title | String | | 选项的文字
 |value | String | | 选项的值
 |disabled | Boolean | false | 是否禁用此项，当全局disabled时，全部禁用
@@ -502,7 +503,7 @@ sortArray数组字段
 
 
 | 参数 | 类型 | 默认值 |意义
-|---|----|----|
+|---|----|----|----
 |required | Boolean | true | 是否必须有值
 |css | String | | 样式
 |show | Boolean | true | 是否显示
@@ -517,7 +518,7 @@ sortArray数组字段
 sortArray 条目的对象如下
 
 | 参数 | 类型 | 默认值 |意义
-|---|----|----|
+|---|----|----|----
 |value  | String | | 选项的值
 |title  | String | | 选项显示的文字
 |disabled |Boolean | false | 是否禁用此项，不是必须配置
