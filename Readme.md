@@ -46,256 +46,516 @@
 
 	Vue.prototype.$valid = valid;
 
+#### 单个数据的验证
 
+调用Vue的全局函数 `$checkData`，参数为组件的对象
+
+返回为当前数据是否正确，错误时返回false，并将组件对象的error属性修改为错误的信息。
+
+
+示例：
+
+	let dataKey = {
+		error: "",
+		required: true,
+		val: "1a",
+		maxlength: 3,
+		valid: {
+			type: "num",
+			args: [1, 200]
+		}
+	}
+
+	//Vue 组件内部调用
+	let success = this.$checkData(dataKey);
+	if(success) {
+		//your code
+	}
+
+上述例子错误，dataKey.error会被赋值 自定义验证函数返回的值
+
+#### 多组数据验证
+
+调用Vue全局函数 `$checkAll`，
+
+参数为多组单个组件的合集，当前仅支持对象方式，后续可以扩展成数组合集
+
+返回值为Boolean， true表示验证通过； false表示验证错误
+
+支持验证对象，key为数据字段，值为数据对象的配置，如：
+
+	<template>
+	    <div>  
+	        <v-group title="发送间隔时间">
+	            <v-input :data-key="formData.sendInterval"></v-input>
+	            <span>s</span>
+	            <span class="text-light">(范围：5-32768)</span>
+	        </v-group>
+	        <v-group title="TTL乘数">
+	            <v-input :data-key="formData.ttlNum"></v-input>
+	            <span>s</span>
+	            <span class="text-light">(范围：2-10)</span>
+	        </v-group>
+	
+	        <v-group title="发送延迟时间">
+	            <v-input :data-key="formData.sendDelayTime"></v-input>
+	            <span>s</span>
+	            <span class="text-light">(范围：1-8192 , 发送延迟时间≤发送间隔时间/4)</span>
+	        </v-group>
+	        <v-group title="初始化延迟时间">
+	            <v-input :data-key="formData.intDelayTime"></v-input>
+	            <span>s</span>
+	            <span class="text-light">(范围：1-10)</span>
+	        </v-group>
+	        
+	        <v-group title=" ">
+	            <v-button css="btn-primary" title="确定" :callback="submit"></v-button>
+	        </v-group>
+	
+	    </div>
+	</template>
+	<script>
+	export default {
+	    data() {
+	        return {
+	            formData: {
+	                sendInterval: {
+	                    maxlength: 5,
+	                    valid: {
+	                        type: "num",
+	                        args: [5, 32768]
+	                    }
+	                },
+	                ttlNum: {
+	                    maxlength: 2,
+	                    valid: {
+	                        type: "num",
+	                        args: [2, 10]
+	                    }
+	                },
+	                sendDelayTime: {
+	                    maxlength: 4,
+	                    valid: {
+	                        type: "num",
+	                        args: [1, 8192]
+	                    }
+	                },
+	                intDelayTime: {
+	                    maxlength: 2,
+	                    valid: {
+	                        type: "num",
+	                        args: [1, 10]
+	                    }
+	                }
+	            }
+	        };
+	    },
+
+	    methods: {
+	        submit() {
+	            let checkSuccess = this.$checkAll(this.formData);
+	
+	            if(!checkSuccess) {
+	                return;
+	            }
+	            //your code
+	        }
+	    }
+	};
+	</script>
+
+ 
 
 ### Table表格
 
-支持属性 tableOptions 表格数据配置
+配置属性
 
-	html
+`<v-table :tableOptions="xxx" @on-custom-comp="xxxxx" :callback="xxxxxx">`
 
-	<v-table
-		:tableOptions="tableData"
-		:callback="updateCallBack"
-		@on-custom-comp="customCompFunc1"
-		:update="updateTimer">
-	</v-table>
+- tableOptions  Object 表格配置对象
+- @on-custom-comp  Function 表格自定义数据
+- callback Function 表格初始化后的回调，参数为当前页面的数据
 
-	js
+tableOptions对象
 
-	tableData： {
+| 参数 | 类型 | 默认值 |意义
+|---|----|----|----
+|originData| Array | [] | 表格原始数据
+|show |Boolean | true | 表格是否显示
+|css | String | | 表格自定义样式
+|key | String | | 表格数据的关键字，用于查找和匹配数据，每组数据的唯一标识符
+|maxTableRow  | Number| 10 | 表格显示多少行，超过行数时显示滚动条
+|showPage | Boolean | false | 是否支持分页显示
+|pagePer | Number | 10 | 每页多少条
+|search | Boolean | false | 是否支持搜索
+|placeholder | String |  | 搜索框的占位符，为空时会取支持搜索列的title，再以 "/" 合并
+|selectBox | Boolean | false | 第一列是否是复选框
+|secondColumns | Array | | 表格第二个title
+|columns | Array | | 表头信息
+
+
+secondColumns
+
+| 参数 | 类型 | 默认值 |意义
+|---|----|----|----
+|width | String   | | 宽度
+|colspan | Number | | 占几列
+|rowspan | Number | | 占几行
+|title   | String | | 文字显示 
+
+columns
+
+| 参数 | 类型 | 默认值 |意义
+|---|----|----|----
+|title | String|  | 表头文字
+|field | String | | 表格字段
+|width | String | | 列宽度
+|search | Boolean | | 此列是否支持搜索
+|sort | Boolean | | 此列是否支持排序
+|format | Function | | 数据转换函数，必须有返回值<br>第一参数为改字段的值<br>第二参数为此行的数据<br>返回值为当前显示
+|parseHtml | Boolean | false | 是否显示以html显示
+|componentName | String | | 自定义组件名称，必须为全局组件<br>其中事件处理必须触发`on-custom-comp`父组件的事件
+
+自定义组件中可以从父组件获取到的值为
+
+| 参数 | 类型 | 默认值 |意义
+|---|----|----|----
+|action | Any | | 自定义的字段，用于自定义组件传值
+|rowData | Object | |当前行的数据
+|originData | Object | |当前行的原始数据
+|field | String | | 当前行列的字段
+|keyword | String | | 关键字，等于表格插件的key
+|index | Number | | 当前行数 
+
+* 当selectBox为true时， 列表第一项为checkbox
+
+* 点击事件必须执行表格的自定义事件 on-custom-comp，传参type值为checkbox，
+事件处理都交付于父组件的`on-custom-comp`的事件处理，表格列中自定义组件示例如下
+
+
+		表格中colums的配置
+		colums: [{
+			componentName: "table-operation"
+		}]
 		
-		originData： [],//表格原始数据
-		show: true,是否显示
-		key: //每行tr关键字
-		css: 表格自定义样式
-		maxTableRow： 10， //每页显示多少行，超过行则出现滚动条
-		showPage: false //是否支持分页
-		pagePer： 10 //每页多少条
-		sortOrder: ["string"] //表头支持排序的列
-		sortOpt: Object  key为表头排序的关键字 value为asc/desc
-		search: true 是否支持搜索
-		searchItem: [], //支持搜索的字段
-		selectBox: false, //是否支持第一列为checkbox
-		columns: [{
-			title: "无线名称",
-            field: "ssid",
-            width: "40%",
-            sort: true/false, //是否支持排序
-            format:function() {return str},
-            parseHtml: true/false, // 是否是html
-            componentName: string //自定义组件
-		}
-		...
-		]
-
-	}
-
-
-当selectBox为true时， 列表第一项为checkbox
-
-点击事件会执行表格的自定义事件 on-custom-comp，传参type值为checkbox，
-
-点击全选时，传参type值为selectAll
-
-
-	自定义表格列
-	例：
-
-	colums: [{
-		componentName: "table-operation"
-	}]
-
-	// 自定义列组件
-    Vue.component('table-operation', {
-        template:`<div>
-        	<a href="" @click.stop.prevent="update(rowData,field)">编辑</a>&nbsp;
-        	<a href="" @click.stop.prevent="deleteRow(rowData,field)">删除</a>
-        </div>`,
-        props:["rowData", "field", "index", "tableData"],
-        methods:{
-            update(rowData, field){
-
-              console.log("xxxx");
-            },
-
-            deleteRow(){
-
-                // 参数根据业务场景随意构造
-                let params = {type:'delete',index: this.index};
-                this.$emit('on-custom-comp',params); //必须 触发表格的自定义事件
-
-            }
-        }
-    });
+		// 全局自定义列组件
+		Vue.component('table-operation', {
+		    template:`<div>
+		    	<a href="" @click.stop.prevent="update(rowData,field)">编辑</a>&nbsp;
+		    	<a href="" @click.stop.prevent="deleteRow(rowData,field)">删除</a>
+		    </div>`,
+		    props:["rowData", "field", "index", "tableData"],
+		    methods:{
+		        update(rowData, field){
+		
+		          console.log("xxxx");
+		        },
+		
+		        deleteRow(){
+		
+		            // 参数根据业务场景随意构造
+		            let params = {type:'delete',index: this.index};
+		            this.$emit('on-custom-comp',params); //必须 触发表格的自定义事件
+		
+		        }
+		    }
+		});
 
 callback 表格更新后的回调
 
-表格操作事件处理主要是执行表格的 on-custom-comp事件，通过类型不同处理不同的事件
+* 如果表格某行需要禁用checkbox时，只需给此行数据增加 hasCheckbox
+
+checkbox 中 on-custom-comp 事件中，参数为对象，其属性为
+
+| 参数 | 类型 | 默认值 |意义
+|---|----|----|
+|type| string | | 事件处理的标志，复选框时 值为checkbox，全选时为selectAll，其他需用户自定义
+|index | Number | | 当前第几个
+|rowData | Object | | 此行的数据（经过format转换后的数据）
+|originData| Object | | 原始数据 
+
+见下示例中的`customCompFunc`
+
+使用示例：
+
+	<template>
+		<v-table ref="table" 
+				:tableOptions="tableData" 
+				@on-custom-comp="customCompFunc"
+				:callback="afterUpdateTable">
+		</v-table>
+	</template>
+
+	<script>
+		export default {
+		    data() {
+		        return {
+		            tableData: {
+		                key: "vlanId",
+		                css: "table-group",
+		                selectBox: true,
+		                columns: [
+		                    {
+		                        title: "VLAN ID",
+		                        field: "vlanId"
+		                    },
+		                    {
+		                        title: "服务器IP",
+		                        field: "serverIp",
+		                        format(data) {
+		                            return data.join("/");
+		                        }
+		                    }
+		                ]
+		            }
+				}
+			},
+			mounted() {
+				//此处通过ajax获取数据，然后给 this.tableData.originData赋值
+				//this.tableData.originData = your data list;
+			},
+			methods: {
+				customCompFunc(options) {
+		            switch (options.type) {
+		                
+		                //选中单个
+		                case "checkbox":
+		                    this.clickSelectBox(options);
+		                    break;
+		                //全选
+		                case "selectAll":
+		                    this.clickSelectedAll(options);
+		                    break;
+		            }
+		        },
+				clickSelectBox(options) {
+					//your code
+				},
+				clickSelectedAll(options) {
+					//your code
+				},
+				afterUpdateTable(pageData) { //当前页面的数据
+
+					pageData.forEach(item => {
+						if(item.vlanId == "0") {
+							item.hasCheckbox = false;// 禁用checkbox
+						}
+					})
+					//表格更新后的回调
+				}
+			}
+		}
+	</script>
+
+* 表格操作事件处理主要是执行表格的 on-custom-comp事件，通过参数类型（type）不同处理不同的事件
 
 ### 下拉框
 
 支持下拉框自定义和手动输入
 
-默认值
+| 参数 | 类型 | 默认值 |意义
+|---|----|----|
+|required | Boolean | true | 是否必须输入
+|css | String | | 样式
+|show | Boolean | true | 是否显示
+|ignore | Boolean | false | 是否忽略验证，也可用于保存时不提交此项
+|disabled | Boolean | false | 是否禁用
+|hasManual | Boolean | false | 是否支持手动输入
+|manualText | String | 自定义| 手动输入时，下拉列表手动输入的文字
+|maxlength | Number | | 手动输入时最大输入长度
+|error | String | |错误信息
+|name | String | | 下拉框的name，用于自动化
+|defaultVal | String | | 下拉框的默认值
+|immediate | Boolean | true | 是否立即执行回调函数
+|sortArray | Array | | 下拉框列表
+|val | String | | 下拉框值
+|valid | Array | | 自定义数据时的验证类型（详情见输入框）
+|changeCallBack | Function | | 值被修改后执行的回调，参数为下拉框的值
+|beforeChange | Function | | 值修改之前执行的函数，返回false时不会执行changCallBack，其他则执行
 
-	required: true,
-    css: "", //样式
-    show: true, //是否显示
-    ignore: false, //是否忽略
-    disabled: false, //是否禁用
-    hasManual: false, //是否支持自定义
-    manualText: "自定义", //自定义的文字
-    maxLength: "", //输入框最大输入长度
-    error: "", //错误
-    sortArray: [
-        /* {
-            value: xxx,
-            title: xxx
-        }*/
-    ],
-    val: "", //组件值
-    options: {}, //options 和sortArray 同时存在时优先以sortArray存在
-	valid: { //数据验证 仅自定义时生效
-			
-	},
-    changeCallBack: function() {}
 
+sortArray的两种配置
+
+- 当  显示的文字和值一致时，可以配置为 sortArray = ["option1", "option2"]
+
+- 另一种为 对象配置 value：下拉选项的值   title：下拉选项的文字显示
+
+如：sortArray = [{value: "1", title: "option1"},{value: "2", title: "option2"}]
 
 示例
 
-	<v-group title="">
-		<v-select :dataKey="select"></v-select>
-	</v-group>
-
-
-	select: {
-		val: "",
-		hasManual: false,
-		manualText: "手动设置",
-		sortArray:[{
-			title: "optionxxxxxxxxxxxxxxxxxxxxxx 1",
-			value:  "1"
-		},{
-			title: "optionxxxxxxxxxxxxxxxxxx 2",
-			value:  "2"
-		},{
-			title: "option 3",
-			value:  "3"
-		}],
-		valid: {
-			type: "ascii"
+	<template>
+		<v-select :data-key="select"></v-select>
+	</template>
+	<script>
+	export default {
+		data() {
+			return {
+				select: {
+					val: "",
+					hasManual: true,
+					manualText: "手动设置",
+					sortArray:[{
+						title: "这是什么选项",
+						value:  "1"
+					},{
+						title: "你在干吗",
+						value:  "2"
+					},{
+						title: "option 3",
+						value:  "3"
+					}],
+					valid: {
+						type: "ascii"
+					},
+					changeCallBack: this.selectCallBack
+				}
+			}
 		},
-		changeCallBack: this.selectCallBack
+		methods: {
+			selectCallBack(selectVal) {
+		
+			}
+		}
 	}
+	</script>
+
+* 注意： 当hasManual=true时，不会立即执行changeCallBack
+
+* beforeChange： 当返回false时，不会执行changeCallBack
+
+* 选择手动输入时，值为 -1，后续扩展成传参
 
 ### 复选框
 
-支持单个复选框和多个复选框
+支持单个复选框和多个复选框，使用属性为 :data-key="xxxx"
 
-配置如下（默认值）
 
-	required: true,
-    css: "", //样式
-    show: true, //是否显示
-    ignore: false, //是否忽略
-    disabled: false, //是否禁用
-    val: "", //组件id
-    values: [true, false], //选中和不选中 默认用options的数据
-    error: "",
-	hasSelectAll: true/false  //是否有全选
-    sortArray: [/*{
-        title: "",
-        value: "",
-        disabled: ""
-    }*/],
-    options: {
-        //[value]: [title]
-    },
-    title: "", //
-    changeCallBack: function() {}
-	
 
-当sortArray长度为0时，则为单个复选框 此时title 生效 值为 values的元素
+| 参数 | 类型 | 默认值 |意义
+|---|----|----|
+|required | Boolean | false | 是否必须有值
+|css | String | | 样式
+|show | Boolean | true | 是否显示
+|ignore | Boolean | false | 是否忽略验证，也可用于保存时不提交此项
+|disabled | Boolean | false | 是否禁用，禁用所有
+|val | String or Array | | 值
+|name| String | | 组件名称
+|values | Array | [true, false] | 选中或不选中的值  第一项为选中的值  第二项为不选中的值
+|error | String | | 错误信息
+|hasSelectAll | Boolean | false | 是否有全选，多项时有效
+|sortArray | Array | | 选项列表
+|changeCallBack | Function | | 修改数据后的函数，参数为复选框的值
 
-当sortArray长度不为0时，则为多个复选框，返回值key为数组
 
-hasSelectAll 是否有全选，适用于多个复选框
+sortArray数组字段
+
+| 参数 | 类型 | 默认值 |意义
+|---|----|----|
+|title | String | | 选项的文字
+|value | String | | 选项的值
+|disabled | Boolean | false | 是否禁用此项，当全局disabled时，全部禁用
+
+* val 当选项只有一个时，值为String， 当选项多个时，返回的是选中后的值组成的数组
+* hasSelectAll 是否有全选，适用于多个复选框
 
 
 
 示例
-	<v-group title="复选框">
-		<v-checkbox :dataKey="checkbox"></v-checkbox>
-	</v-group>
 
-	checkbox: {
-		title: _("Login"),
-		sortArray: [{
-			value: "2",
-			title: "label 2"
-		},{
-			value: "0",
-			title: "label 0"
-		},{
-			value: "1",
-			title: "label 1"
-		}],
-		key: ["2"],
-		changeCallBack(value) {
-			console.log("radio value ",value);
+	<template>
+		<v-checkbox :data-key="checkbox"></v-checkbox>
+	</template>
+	<script>
+	export default {
+		data() {
+			return {
+				checkbox: {
+					sortArray: [{
+						value: "2",
+						title: "label 2"
+					},{
+						value: "0",
+						title: "label 0",
+						disabled: true
+					},{
+						value: "1",
+						title: "label 1"
+					}],
+					changeCallBack(value) {
+						console.log("checkbox value ",value);
+					}
+				}
+			}
 		}
 	}
+
+	</script>
+	
 
 
 ### 单选按钮
 
-默认值
+组件示例`<v-radio :data-key="xxx"></v-radio>`
 
-	required: true,
-    css: "", //样式
-    show: true, //是否显示
-    ignore: false, //是否忽略
-    disabled: false, //是否禁用
-    val: "", //组件id
-    error: "",
-    sortArray: [/*{
-        value: xxx,
-        title: ""
-    }*/],
-    options: {},
-    changeCallBack: function() {}
+配置属性字段如下
+
+
+| 参数 | 类型 | 默认值 |意义
+|---|----|----|
+|required | Boolean | true | 是否必须有值
+|css | String | | 样式
+|show | Boolean | true | 是否显示
+|ignore | Boolean | false | 是否忽略验证，也可用于保存时不提交此项
+|disabled | Boolean | false | 是否禁用，禁用所有
+|val | String or Array | | 值
+|name| String | | 组件名称
+|error | String | | 错误信息
+|sortArray | Array | | radio选项
+|changCallBack | Function | | 修改选项后的回调事件
+
+sortArray 条目的对象如下
+
+| 参数 | 类型 | 默认值 |意义
+|---|----|----|
+|value  | String | | 选项的值
+|title  | String | | 选项显示的文字
+|disabled |Boolean | false | 是否禁用此项，不是必须配置
+
 
 
 示例
-	<v-group title="单选框">
+
+	<template>
 		<v-radio :dataKey="radio"></v-radio>
-	</v-group>
+	</template>
 
-	radio: {
-		title: _("Login"),
-		sortArray: [{
-			value: "2",
-			title: "label 2"
-		},{
-			value: "0",
-			title: "label 0"
-		},{
-			value: "1",
-			title: "label 1"
-		}], 
-		//or
-		options: {
-			"1": "label 1",
-			"2": "label 2",
-			"0": "label 0"
-
-		},
-		val: "2",
-		changeCallBack(value) {
-			console.log("radio value ",value);
+	<script>
+	
+	export default {
+		data() {
+			return {
+				radio: {
+					sortArray: [{
+						value: "2",
+						title: "label 2"
+					},{
+						value: "0",
+						title: "label 0",
+						disabled: true
+					},{
+						value: "1",
+						title: "label 1"
+					}],
+					changeCallBack(value) {
+						console.log("radio value ",value);
+					}
+				}
+			}
 		}
-	}
+	}	
+	</script>
+	
 
 ### 输入框
 

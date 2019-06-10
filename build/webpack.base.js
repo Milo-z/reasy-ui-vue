@@ -134,6 +134,7 @@ module.exports = {
 	optimization: { //webpack 4
         minimize: false
     },
+	devtool: false,
     plugins: [
 
         new VueLoaderPlugin(),

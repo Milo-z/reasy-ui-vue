@@ -56,7 +56,7 @@
         <div class="table-body" :style="{'height': bodyHeight + 'px'}">
             <table class="table table-fixed" ref="table-body">
                 <tbody>
-                    <tr ref="table-body-tr" v-for="(rowsData) in pageData">
+                    <tr ref="table-body-tr" v-for="(rowsData, rowsIndex) in pageData">
                         <td class="select-box" style="width: 50px" v-if="tableOptions.selectBox">
                             <component
                                 :is="'table-checkbox'"
@@ -64,11 +64,11 @@
                                 :rowData="rowsData"
                                 :originData="findOriginData(rowsData[tableOptions.key])"
                                 field="selected"
-                                :index="findIndex(rowsData[tableOptions.key])"
+                                :index="rowsIndex"
                                 :style="{'width': '50px'}"
                             ></component>
                         </td>
-                        <template v-for="(columns, index) in tableOptions.columns">
+                        <template v-for="(columns) in tableOptions.columns">
                             <td v-if="!columns.componentName" :style="{'width': columns.width}" class="fixed">
                                 <span
                                     v-if="columns.parseHtml"
@@ -97,7 +97,8 @@
                                     :rowData="rowsData"
                                     :originData="findOriginData(rowsData[tableOptions.key])"
                                     :field="columns.field"
-                                    :index="findIndex(rowsData[tableOptions.key])"
+                                    :keyword="tableOptions.key"
+                                    :index="rowsIndex"
                                     :style="{'width': columns.width}"
                                 ></component>
                             </td>
@@ -167,8 +168,6 @@ let defaults = {
     totalPage: 1, //共几页
     page: 0, //当前页  从0开始
     key: "", //关键标志
-    sortOpt: {}, //元素排序顺序
-    sortOrder: [], //默认排序顺序
     search: false,
     placeholder: "",
     originData: [],
@@ -313,7 +312,7 @@ export default {
             //this.tableOptions.pageData = this.pageData;
 
             this.$nextTick(function() {
-                this.tabaleCallback(); //执行表格更新的回调
+                this.tabaleCallback(this.pageData); //执行表格更新的回调
             });
         },
 
@@ -556,13 +555,14 @@ export default {
             this.originData = newTableArr;
         },
         changeSelectAll() {
-            this.pageData.forEach(item =>
-                this.$set(item, "selected", this.checkbox.val)
-            );
+            this.pageData.forEach((item) => {
+                //过滤禁用的
+                item.hasCheckbox !== false && this.$set(item, "selected", this.checkbox.val);
+            });
             let selectArr = [],
                 tableKey = this.tableOptions.key;
             this.pageData.forEach(item => {
-                selectArr.push(
+                item.hasCheckbox !== false && selectArr.push(
                     this.tableOptions.originData.filter(
                         item1 => item1[tableKey] == item[tableKey]
                     )[0]
@@ -584,12 +584,14 @@ export default {
                 if (typeof oldData === "undefined") {
                     return;
                 }
+                this.checkbox.val = "0";
                 this.formatTable();
 
                 this.tableData = copyDeepData(this.originData);
 
                 this.updateTable();
-            }
+            },
+            deep: true
         }
     },
     destroyed() {}

@@ -703,6 +703,15 @@ function checkData(dataKey, value) {
             return true;
         }
     }
+    if (Array.isArray(dataKey.sortArray)) {
+        var sortArr = dataKey.sortArray.filter(function (item) {
+            return item.value == val;
+        });
+        if (sortArr.length > 0) {
+            dataKey.error = '';
+            return true;
+        }
+    }
 
     if (!Array.isArray(dataKey.valid)) {
         if (dataKey.valid) {
@@ -998,7 +1007,6 @@ exports.__esModule = true;
 //
 
 var defaults = {
-  required: false,
   css: "", //样式
   title: "",
   hasOK: true,
@@ -1006,7 +1014,6 @@ var defaults = {
   okText: _("OK"),
   cancelText: _("Cancel"),
   show: true, //是否显示
-  ignore: true, //是否忽略
   okCallBack: function okCallBack() {},
   cancelCallBack: function cancelCallBack() {}
 };
@@ -1360,6 +1367,7 @@ var PAGE_PREV_NUM = 2; //当前页前后显示页数
 //
 //
 //
+//
 
 var MAX_PAGE_SHOW = 2 * PAGE_PREV_NUM + 1 + 2 + 2; // 前后页 + 本身页 + 2个省略 + 首尾两页
 
@@ -1386,8 +1394,6 @@ var defaults = {
     totalPage: 1, //共几页
     page: 0, //当前页  从0开始
     key: "", //关键标志
-    sortOpt: {}, //元素排序顺序
-    sortOrder: [], //默认排序顺序
     search: false,
     placeholder: "",
     originData: [],
@@ -1522,7 +1528,7 @@ exports.default = {
             //this.tableOptions.pageData = this.pageData;
 
             this.$nextTick(function () {
-                this.tabaleCallback(); //执行表格更新的回调
+                this.tabaleCallback(this.pageData); //执行表格更新的回调
             });
         },
 
@@ -1759,12 +1765,13 @@ exports.default = {
             var _this5 = this;
 
             this.pageData.forEach(function (item) {
-                return _this5.$set(item, "selected", _this5.checkbox.val);
+                //过滤禁用的
+                item.hasCheckbox !== false && _this5.$set(item, "selected", _this5.checkbox.val);
             });
             var selectArr = [],
                 tableKey = this.tableOptions.key;
             this.pageData.forEach(function (item) {
-                selectArr.push(_this5.tableOptions.originData.filter(function (item1) {
+                item.hasCheckbox !== false && selectArr.push(_this5.tableOptions.originData.filter(function (item1) {
                     return item1[tableKey] == item[tableKey];
                 })[0]);
             });
@@ -1784,12 +1791,15 @@ exports.default = {
                 if (typeof oldData === "undefined") {
                     return;
                 }
+                this.checkbox.val = "0";
                 this.formatTable();
 
                 this.tableData = (0, _libs.copyDeepData)(this.originData);
 
                 this.updateTable();
-            }
+            },
+
+            deep: true
         }
     },
     destroyed: function destroyed() {}
@@ -2102,9 +2112,10 @@ var defaults = {
     disabled: false, //是否禁用
     hasManual: false, //是否支持自定义
     manualText: _("Manual"),
-    maxLength: "", //输入框最大输入长度
+    maxlength: "", //输入框最大输入长度
     error: "", //错误
     name: "",
+    defaultVal: "",
     immediate: true,
     sortArray: [
         /* {
@@ -2116,7 +2127,7 @@ var defaults = {
     valid: [], //数据验证 仅自定义时生效
     options: {}, //options 和sortArray 同时存在时优先以sortArray存在
     changeCallBack: function changeCallBack() {},
-    beforeChange: function beforeChange() {}
+    beforeChange: function beforeChange() {} //改变之前，返回false时不会执行changeCallBack
 }; //
 //
 //
@@ -2188,19 +2199,23 @@ exports.default = {
                 });
             }
         }
+        //默认值
+        defaults.val = defaults.val || defaults.defaultVal;
+
         this.dataKey = this.setOptions(this.dataKey, defaults);
     },
     data: function data() {
         return {
             error: "",
             dropdownShow: false,
+            firstChange: false,
             selectLabel: "",
             dataOption: {}
         };
     },
     mounted: function mounted() {
         //定义body click事件
-        this.globalEvent("click", this.hide);
+        //this.globalEvent("click", this.hide);
     },
 
     methods: {
@@ -2210,18 +2225,19 @@ exports.default = {
         changeSelect: function changeSelect(value, label) {
 
             this.dropdownShow = false;
+
             if (value === this.dataKey.val) {
                 return;
             }
+            this.firstChange = true;
+
             if (this.dataKey.beforeChange(value) === false) {
                 return;
             }
             this.dataKey.error = '';
             this.dataKey.val = value;
             this.selectLabel = label;
-            if (!this.dataKey.immediate) {
-                this.dataKey.changeCallBack(value);
-            }
+            this.dataKey.changeCallBack(value);
         },
         showOption: function showOption() {
             if (!this.dataKey.disabled) {
@@ -2253,7 +2269,10 @@ exports.default = {
 
             this.dataKey.sortArray.forEach(function (item) {
                 //当显示的文字存在于下拉列表时
-                if (_this.selectLabel == item.title) {
+                if (_this.selectLabel == item.value) {
+                    _this.selectLabel = item.title;
+                    newVal = item.value;
+                } else if (_this.selectLabel == item.title) {
                     newVal = item.value;
                 }
             });
@@ -2287,7 +2306,7 @@ exports.default = {
         }
     },
     destroyed: function destroyed() {
-        this.globalRemoveEvent("click", this.hide);
+        //this.globalRemoveEvent("click", this.hide);
         this.dataKey.error = "";
     },
 
@@ -2300,8 +2319,8 @@ exports.default = {
                 try {
                     this.setInputValue();
                 } catch (e) {}
-                if (this.dataKey.immediate && !this.dataKey.hasManual) {
-                    this.dataKey.changeCallBack(newValue);
+                if ((this.dataKey.immediate !== false || this.firstChange == true) && !this.dataKey.hasManual) {
+                    this.dataKey.changeCallBack && this.dataKey.changeCallBack(newValue);
                 }
             },
 
@@ -2396,27 +2415,9 @@ exports.__esModule = true;
 //
 //
 //
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
 
 var defaults = {
-    required: true,
+    required: false,
     css: "", //样式
     show: true, //是否显示
     ignore: false, //是否忽略
@@ -2431,10 +2432,6 @@ var defaults = {
                 value: "",
                 disabled: ""
                 }*/],
-    options: {
-        //[value]: [title]
-    },
-    title: "", //
     changeCallBack: function changeCallBack() {}
 };
 
@@ -2443,16 +2440,6 @@ exports.default = {
     props: ["dataKey"],
     created: function created() {
         this.dataKey = this.setOptions(this.dataKey, defaults);
-
-        //sortArray为空时，默认以dataKey.options 对象属性排序
-        if (this.dataKey.sortArray.length === 0) {
-            for (var prop in this.dataKey.options) {
-                this.dataKey.sortArray.push({
-                    title: this.dataKey.options[prop],
-                    value: prop
-                });
-            }
-        }
 
         if (this.dataKey.sortArray.length <= 1) {
             this.groups = false;
@@ -2472,12 +2459,14 @@ exports.default = {
             var valArr = [],
                 _this = this;
 
+            if (this.dataKey.disabled === true) {
+                return;
+            }
             if (!this.groups) {
                 this.$refs["v-checkbox"].checked = !this.$refs["v-checkbox"].checked;
-                this.dataKey.val = this.$refs["v-checkbox"].checked ? this.dataKey.values[0] : this.dataKey.values[1];
+                this.dataKey.val = this.$refs["v-checkbox"].checked ? this.dataKey.sortArray[0].value || this.dataKey.values[0] : this.dataKey.values[1];
             } else {
                 //组
-
                 this.$refs["v-checkbox"][index].checked = !this.$refs["v-checkbox"][index].checked;
 
                 this.$refs["v-checkbox"].forEach(function (item) {
@@ -2494,7 +2483,9 @@ exports.default = {
             }
         },
         changeSelectedAll: function changeSelectedAll() {
-
+            if (this.dataKey.disabled === true) {
+                return;
+            }
             this.selectedAll = !this.selectedAll;
             var valArr = [];
             if (this.selectedAll) {
@@ -2756,10 +2747,9 @@ exports.__esModule = true;
 var defaults = {
     css: "", //样式
     show: true, //是否显示
-    ignore: true, //是否忽略
     disabled: false, //是否禁用
     val: "", //组件id
-    immediate: false,
+    immediate: true,
     name: "",
     values: [true, false],
     title: "", //描述
@@ -2788,10 +2778,11 @@ exports.default = {
                 return;
             }
 
+            this.firstChange = true;
             if (this.dataKey.beforeChange() === false) {
                 return;
             }
-            this.firstChange = true;
+
             this.checked = !this.checked;
             this.dataKey.val = this.checked ? this.dataKey.values[0] : this.dataKey.values[1];
         }
@@ -2870,9 +2861,21 @@ exports.__esModule = true;
 //
 //
 
+
+var defaults = {
+    css: "",
+    show: true, //是否显示
+    val: "",
+    min: 0,
+    max: 100,
+    immediate: true,
+    disabled: false, //是否禁用
+    changeCallBack: function changeCallBack() {}
+};
+
 exports.default = {
     name: "v-slider",
-    props: ["min", "max", "value"],
+    props: ["dataKey"],
     data: function data() {
         return {
             perNum: 0, //每次最少移动
@@ -2887,14 +2890,11 @@ exports.default = {
         };
     },
     created: function created() {
-        this.vText = +(this.value || this.min);
+        this.dataKey = this.setOptions(this.dataKey, defaults);
+        this.perNum = this.maxWidth / (this.dataKey.max - this.dataKey.min);
+        this.vText = this.dataKey.val;
+        this.left = this.perNum * (this.dataKey.val - this.dataKey.min);
     },
-    mounted: function mounted() {
-        this.perNum = this.maxWidth / (this.max - this.min);
-
-        this.left = this.perNum * (this.value - this.min);
-    },
-
 
     methods: {
         bindEvent: function bindEvent() {
@@ -2902,6 +2902,9 @@ exports.default = {
             window.addEventListener("mouseup", this.mouseUp, false);
         },
         mouseStart: function mouseStart(e) {
+            if (this.dataKey.disabled) {
+                return;
+            }
             this.startX = e.pageX;
             this.lastLeft = this.left;
             this.moveStart = true;
@@ -2920,7 +2923,7 @@ exports.default = {
                     this.left = this.maxWidth;
                 }
 
-                this.vText = Math.round(Number(this.min) + this.left / this.perNum);
+                this.vText = Math.round(Number(this.dataKey.min) + this.left / this.perNum);
             }
         },
         mouseUp: function mouseUp(e) {
@@ -2928,7 +2931,24 @@ exports.default = {
             window.removeEventListener("mousemove", this.mouseMove);
             window.removeEventListener("mouseup", this.mouseUp);
             document.body.removeClass("no-select");
+            this.dataKey.val = this.vText;
         }
+    },
+    watch: {
+        "dataKey.val": {
+            handler: function handler(newValue, oldValue) {
+                this.perNum = this.maxWidth / (this.dataKey.max - this.dataKey.min);
+                if (newValue < this.dataKey.min) {
+                    this.vText = this.dataKey.min;
+                }
+                this.vText = this.dataKey.val;
+                this.left = this.perNum * (this.vText - this.dataKey.min);
+                if (this.dataKey.immediate) {
+                    this.dataKey.changeCallBack && this.dataKey.changeCallBack(newValue);
+                }
+            }
+        },
+        immediate: true
     },
     destroyed: function destroyed() {
         window.removeEventListener("mousemove", this.mouseMove);
@@ -2971,6 +2991,35 @@ __webpack_require__.r(__webpack_exports__);
 
 
 exports.__esModule = true;
+
+var _libs = __webpack_require__(3);
+
+var defaults = {
+    show: true,
+    singleVal: false,
+    portNum: 28,
+    consolePort: 4,
+    isClick: true,
+    val: [],
+    name: "",
+    disabled: [],
+    legend: false,
+    hasSelectAll: true
+}; //
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 //
 //
 //
@@ -3038,23 +3087,35 @@ exports.__esModule = true;
 //
 //
 
-var defaults = {
-    show: true,
-    singleVal: false,
-    portNum: 28,
-    consolePort: 4,
-    isClick: true,
-    val: [],
-    name: "",
-    disabled: [],
-    legend: false,
-    hasSelectAll: true
-};
+
 exports.default = {
     name: "v-port",
-    props: ["dataPort"],
+    props: ["dataPort", "relativePort"],
+    computed: {
+        activePortList: function activePortList() {
+            var _this = this;
+
+            var valArr = [],
+                newValue = this.dataPort.val || [];
+
+            newValue.forEach(function (item) {
+                //选中的端口
+                if (_this.relativePort && _this.relativePort[item]) {
+                    valArr = valArr.concat(valArr, _this.relativePort[item]);
+                } else {
+                    valArr.push(item);
+                }
+            });
+            //删除禁用的
+            valArr = minusArr(valArr, this.dataPort.disabled);
+            return valArr;
+        }
+    },
     created: function created() {
+        var _this2 = this;
+
         this.dataPort = this.setOptions(this.dataPort, defaults);
+
         var portIndex = (this.dataPort.portNum - this.dataPort.consolePort) / 2;
         for (var i = 0; i < portIndex; i++) {
             this.portList.push({
@@ -3072,12 +3133,35 @@ exports.default = {
             //单选时，去掉全选按钮
             this.hasSelectAll = false;
         }
+
+        //获取组名
+
+        var _loop = function _loop(prop) {
+            _this2.hasGroupLegend = true;
+            _this2.relativePort[prop].forEach(function (item) {
+                //组数字
+                _this2.groupConfig[item] = prop.match(/[\d]+$/g)[0];
+                //关联组
+                _this2.relativeGroup[item] = _this2.relativePort[prop].filter(function (item1) {
+                    return item1 != item;
+                });
+            });
+        };
+
+        for (var prop in this.relativePort) {
+            _loop(prop);
+        }
     },
     data: function data() {
         return {
             legend: this.dataPort.legend,
             portList: [],
+            groupConfig: {}, //端口与组的关联关系
+            relativeGroup: {}, //端口与端口的关联关系
             consoleList: [],
+            hasGroupLegend: false,
+            deselectAll: _('Deselect all'),
+            selectAll: _('Select All'),
             isSelected: false
         };
     },
@@ -3085,7 +3169,7 @@ exports.default = {
     methods: {
         getChecked: function getChecked(portIndex) {
             portIndex = String(portIndex);
-            return this.dataPort.val.indexOf(portIndex) != -1;
+            return this.activePortList.indexOf(portIndex) != -1;
         },
         getDisabled: function getDisabled(portIndex) {
             return this.dataPort.disabled.indexOf(portIndex) != -1;
@@ -3102,12 +3186,16 @@ exports.default = {
                 return;
             }
 
-            var index = this.dataPort.val.indexOf(portIndex);
+            //查找组或者当前端口
+            var relativePortval = findRelativePort(this.relativePort, portIndex);
+            var index = this.dataPort.val.indexOf(relativePortval);
+
             if (!this.singleVal) {
                 if (index == -1) {
-                    //不存在
-                    this.dataPort.val.push(portIndex);
+                    //合并
+                    this.dataPort.val.push(relativePortval);
                 } else {
+                    //删除
                     this.dataPort.val.splice(index, 1);
                     this.isSelected = false;
                 }
@@ -3123,11 +3211,18 @@ exports.default = {
         getAllPort: function getAllPort() {
             var maxPort = this.dataPort.portNum,
                 portArr = [];
+            //关联组 组名
+            for (var prop in this.relativePort) {
+                portArr.push(prop);
+            }
             for (var i = 1; i <= maxPort; i++) {
                 if (this.getDisabled(i)) {
                     continue;
                 }
-                portArr.push(String(i));
+                //没有关联组
+                if (!this.relativeGroup[i]) {
+                    portArr.push(String(i));
+                }
             }
             return portArr;
         },
@@ -3142,6 +3237,30 @@ exports.default = {
         }
     }
 };
+
+
+function findRelativePort(relativePort, port) {
+    for (var prop in relativePort) {
+        if (relativePort[prop].indexOf(port) != -1) {
+            return prop;
+        }
+    }
+    return port;
+}
+
+//差集
+function minusArr(a, b) {
+    return a.filter(function (v) {
+        return b.indexOf(v) == -1;
+    });
+}
+
+//并集
+function unionArr(a, b) {
+    return a.concat(b.filter(function (v) {
+        return !(a.indexOf(v) > -1);
+    }));
+}
 
 /***/ }),
 /* 46 */
@@ -3198,8 +3317,17 @@ exports.default = {
         };
     },
 
+    computed: {
+        hasCheckbox: function hasCheckbox() {
+            return this.rowData.hasCheckbox !== false;
+        }
+    },
     methods: {
         changeBack: function changeBack() {
+            if (!this.hasCheckbox) {
+                this.rowData.selected = 0;
+                return;
+            }
             var selected = this.rowData.selected == "1" ? "0" : "1";
             this.$set(this.rowData, this.field, selected);
             var params = {
@@ -3268,6 +3396,7 @@ exports.default = {
 			content: "",
 			left: 0,
 			top: 0,
+			width: 200,
 			show: false,
 			relativeWidth: 0,
 			relativeHeight: 0
@@ -3290,6 +3419,7 @@ exports.default = {
 
 			//当下方超出屏幕高度时
 			if (clientRect.bottom > bodyHeight) {
+
 				this.top = this.top - this.$refs.tooltip.offsetHeight;
 			}
 		}
@@ -3569,23 +3699,27 @@ var render = function() {
   var _c = _vm._self._c || _h
   return _c("div", { staticClass: "select-box" }, [
     _c("div", { staticClass: "form-el-content form-el-checkbox" }, [
-      _c("label", { staticClass: "form-checkbox" }, [
-        _c("span", {
-          staticClass: "checkbox-item",
-          class:
-            _vm.rowData.selected == "1"
-              ? "v-icon-checkbox-checked"
-              : "v-icon-checkbox-unchecked",
-          on: {
-            click: function($event) {
-              $event.stopPropagation()
-              return _vm.changeBack($event)
+      _c(
+        "label",
+        { staticClass: "form-checkbox", class: { disabled: !_vm.hasCheckbox } },
+        [
+          _c("span", {
+            staticClass: "checkbox-item",
+            class:
+              _vm.rowData.selected == "1"
+                ? "v-icon-checkbox-checked"
+                : "v-icon-checkbox-unchecked",
+            on: {
+              click: function($event) {
+                $event.stopPropagation()
+                return _vm.changeBack($event)
+              }
             }
-          }
-        }),
-        _vm._v(" "),
-        _c("span", { staticClass: "checkbox-text" })
-      ])
+          }),
+          _vm._v(" "),
+          _c("span", { staticClass: "checkbox-text" })
+        ]
+      )
     ])
   ])
 }
@@ -3693,7 +3827,11 @@ var render = function() {
                   [
                     _c("div", { staticClass: "form-port-top" }),
                     _vm._v(" "),
-                    _c("div", { staticClass: "form-port-body" })
+                    _c("div", { staticClass: "form-port-body" }, [
+                      _c("div", { staticClass: "port-group-text" }, [
+                        _vm._v(_vm._s(_vm.groupConfig[item.index[0]]))
+                      ])
+                    ])
                   ]
                 ),
                 _vm._v(" "),
@@ -3714,7 +3852,11 @@ var render = function() {
                   [
                     _c("div", { staticClass: "form-port-top" }),
                     _vm._v(" "),
-                    _c("div", { staticClass: "form-port-body" })
+                    _c("div", { staticClass: "form-port-body" }, [
+                      _c("div", { staticClass: "port-group-text" }, [
+                        _vm._v(_vm._s(_vm.groupConfig[item.index[1]]))
+                      ])
+                    ])
                   ]
                 ),
                 _vm._v(" "),
@@ -3729,13 +3871,23 @@ var render = function() {
             [
               _vm.legend
                 ? _c("div", { staticClass: "port-legend" }, [
-                    _vm._m(0),
+                    _vm.hasGroupLegend
+                      ? _c("div", { staticClass: "form-port-group" }, [
+                          _vm._m(0),
+                          _vm._v(" "),
+                          _c("div", { staticClass: "port-text" }, [
+                            _vm._v("汇聚端口")
+                          ])
+                        ])
+                      : _vm._e(),
                     _vm._v(" "),
                     _vm._m(1),
                     _vm._v(" "),
+                    _vm._m(2),
+                    _vm._v(" "),
                     _vm.dataPort.disabled.length > 0
                       ? _c("div", { staticClass: "form-port-group" }, [
-                          _vm._m(2),
+                          _vm._m(3),
                           _vm._v(" "),
                           _c("div", { staticClass: "port-text" }, [
                             _vm._v("Disabled")
@@ -3768,7 +3920,13 @@ var render = function() {
                           }
                         }
                       },
-                      [_c("div", { staticClass: "form-port-body" })]
+                      [
+                        _c("div", { staticClass: "form-port-body" }, [
+                          _c("div", { staticClass: "port-group-text" }, [
+                            _vm._v(_vm._s(_vm.groupConfig[item.index]))
+                          ])
+                        ])
+                      ]
                     ),
                     _vm._v(" "),
                     _c("span", [_vm._v(_vm._s(item.index))])
@@ -3786,7 +3944,7 @@ var render = function() {
                 [
                   _c("v-button", {
                     attrs: {
-                      title: _vm.isSelected ? "取消全选" : "全选",
+                      title: _vm.isSelected ? _vm.deselectAll : _vm.selectAll,
                       callback: _vm.selectAllPort
                     }
                   })
@@ -3801,6 +3959,18 @@ var render = function() {
   )
 }
 var staticRenderFns = [
+  function() {
+    var _vm = this
+    var _h = _vm.$createElement
+    var _c = _vm._self._c || _h
+    return _c("div", { staticClass: "port-content" }, [
+      _c("div", { staticClass: "form-port-top" }),
+      _vm._v(" "),
+      _c("div", { staticClass: "form-port-body" }, [
+        _c("div", { staticClass: "port-group-text" }, [_vm._v("1")])
+      ])
+    ])
+  },
   function() {
     var _vm = this
     var _h = _vm.$createElement
@@ -3954,40 +4124,54 @@ var render = function() {
   var _vm = this
   var _h = _vm.$createElement
   var _c = _vm._self._c || _h
-  return _c("div", { staticClass: "form-swicth form-el-content" }, [
-    _c("div", { staticClass: "form-slider" }, [
-      _c(
-        "div",
+  return _c(
+    "div",
+    {
+      directives: [
         {
-          staticClass: "slider-content",
-          style: { width: _vm.maxWidth + "px" }
-        },
-        [
-          _c("div", {
-            staticClass: "slider-percent",
-            style: { width: _vm.left + "px" }
-          })
-        ]
-      ),
-      _vm._v(" "),
-      _c("div", {
-        staticClass: "slider-box",
-        style: { left: _vm.left + "px" },
-        on: {
-          mouseover: function($event) {
-            $event.stopPropagation()
-            return _vm.bindEvent($event)
-          },
-          mousedown: function($event) {
-            $event.stopPropagation()
-            return _vm.mouseStart($event)
-          }
+          name: "show",
+          rawName: "v-show",
+          value: _vm.dataKey.show,
+          expression: "dataKey.show"
         }
-      }),
-      _vm._v(" "),
-      _c("div", { staticClass: "slider-number" }, [_vm._v(_vm._s(_vm.vText))])
-    ])
-  ])
+      ],
+      staticClass: "form-swicth form-el-content"
+    },
+    [
+      _c("div", { staticClass: "form-slider", class: _vm.dataKey.css }, [
+        _c(
+          "div",
+          {
+            staticClass: "slider-content",
+            style: { width: _vm.maxWidth + "px" }
+          },
+          [
+            _c("div", {
+              staticClass: "slider-percent",
+              style: { width: _vm.left + "px" }
+            })
+          ]
+        ),
+        _vm._v(" "),
+        _c("div", {
+          staticClass: "slider-box",
+          style: { left: _vm.left + "px" },
+          on: {
+            mouseover: function($event) {
+              $event.stopPropagation()
+              return _vm.bindEvent($event)
+            },
+            mousedown: function($event) {
+              $event.stopPropagation()
+              return _vm.mouseStart($event)
+            }
+          }
+        }),
+        _vm._v(" "),
+        _c("div", { staticClass: "slider-number" }, [_vm._v(_vm._s(_vm.vText))])
+      ])
+    ]
+  )
 }
 var staticRenderFns = []
 render._withStripped = true
@@ -4334,7 +4518,7 @@ var render = function() {
             _c(
               "tbody",
               [
-                _vm._l(_vm.pageData, function(rowsData) {
+                _vm._l(_vm.pageData, function(rowsData, rowsIndex) {
                   return _c(
                     "tr",
                     { ref: "table-body-tr", refInFor: true },
@@ -4356,9 +4540,7 @@ var render = function() {
                                     rowsData[_vm.tableOptions.key]
                                   ),
                                   field: "selected",
-                                  index: _vm.findIndex(
-                                    rowsData[_vm.tableOptions.key]
-                                  )
+                                  index: rowsIndex
                                 },
                                 on: { "on-custom-comp": _vm.customCompFunc }
                               })
@@ -4367,10 +4549,7 @@ var render = function() {
                           )
                         : _vm._e(),
                       _vm._v(" "),
-                      _vm._l(_vm.tableOptions.columns, function(
-                        columns,
-                        index
-                      ) {
+                      _vm._l(_vm.tableOptions.columns, function(columns) {
                         return [
                           !columns.componentName
                             ? _c(
@@ -4439,9 +4618,8 @@ var render = function() {
                                         rowsData[_vm.tableOptions.key]
                                       ),
                                       field: columns.field,
-                                      index: _vm.findIndex(
-                                        rowsData[_vm.tableOptions.key]
-                                      )
+                                      keyword: _vm.tableOptions.key,
+                                      index: rowsIndex
                                     },
                                     on: { "on-custom-comp": _vm.customCompFunc }
                                   })
@@ -4608,145 +4786,99 @@ var render = function() {
       class: { "error-group": _vm.dataKey.error }
     },
     [
-      _vm.groups
+      _vm.dataKey.hasSelectAll
         ? [
-            _vm.dataKey.hasSelectAll
-              ? [
-                  _c("input", {
-                    directives: [
-                      {
-                        name: "show",
-                        rawName: "v-show",
-                        value: false,
-                        expression: "false"
-                      }
-                    ],
-                    ref: "v-checkbox-all",
-                    attrs: { type: "checkbox" },
-                    domProps: { checked: _vm.selectedAll }
-                  }),
-                  _vm._v(" "),
-                  _c(
-                    "label",
-                    {
-                      staticClass: "form-checkbox",
-                      attrs: { name: _vm.dataKey.name },
-                      on: {
-                        click: function($event) {
-                          $event.stopPropagation()
-                          return _vm.changeSelectedAll()
-                        }
-                      }
-                    },
-                    [
-                      _c("span", {
-                        staticClass: "checkbox-item",
-                        class: _vm.selectedAll
-                          ? "v-icon-checkbox-checked"
-                          : "v-icon-checkbox-unchecked"
-                      }),
-                      _vm._v(" "),
-                      _c("span", { staticClass: "checkbox-text" }, [
-                        _vm._v("全选")
-                      ])
-                    ]
-                  )
-                ]
-              : _vm._e(),
+            _c("input", {
+              directives: [
+                {
+                  name: "show",
+                  rawName: "v-show",
+                  value: false,
+                  expression: "false"
+                }
+              ],
+              ref: "v-checkbox-all",
+              attrs: { type: "checkbox" },
+              domProps: { checked: _vm.selectedAll }
+            }),
             _vm._v(" "),
-            _vm._l(_vm.dataKey.sortArray, function(item, index) {
-              return [
-                _c("input", {
-                  directives: [
-                    {
-                      name: "show",
-                      rawName: "v-show",
-                      value: false,
-                      expression: "false"
-                    }
-                  ],
-                  key: item.key,
-                  ref: "v-checkbox",
-                  refInFor: true,
-                  attrs: { type: "checkbox" },
-                  domProps: {
-                    value: item.value,
-                    checked: _vm.getChecked(item.value, index)
-                  }
-                }),
-                _vm._v(" "),
-                _c(
-                  "label",
-                  {
-                    key: item.key,
-                    staticClass: "form-checkbox",
-                    class: { disabled: item.disabled },
-                    attrs: { "data-index": index, name: _vm.dataKey.name },
-                    on: {
-                      click: function($event) {
-                        $event.stopPropagation()
-                        return _vm.changeCheckbox(index, item.selectAll)
-                      }
-                    }
-                  },
-                  [
-                    _c("span", {
-                      staticClass: "checkbox-item",
-                      class: _vm.getChecked(item.value, index)
-                        ? "v-icon-checkbox-checked"
-                        : "v-icon-checkbox-unchecked"
-                    }),
-                    _vm._v(" "),
-                    _c("span", { staticClass: "checkbox-text" }, [
-                      _vm._v(_vm._s(item.title))
-                    ])
-                  ]
-                )
-              ]
-            })
-          ]
-        : [
             _c(
               "label",
               {
                 staticClass: "form-checkbox",
+                class: { disabled: _vm.dataKey.disabled },
                 attrs: { name: _vm.dataKey.name },
                 on: {
                   click: function($event) {
                     $event.stopPropagation()
-                    return _vm.changeCheckbox()
+                    return _vm.changeSelectedAll()
                   }
                 }
               },
               [
-                _c("input", {
-                  directives: [
-                    {
-                      name: "show",
-                      rawName: "v-show",
-                      value: false,
-                      expression: "false"
-                    }
-                  ],
-                  ref: "v-checkbox",
-                  staticClass: "none",
-                  attrs: { type: "checkbox" },
-                  domProps: { checked: _vm.getChecked() }
-                }),
-                _vm._v(" "),
                 _c("span", {
                   staticClass: "checkbox-item",
-                  class: _vm.getChecked()
+                  class: _vm.selectedAll
                     ? "v-icon-checkbox-checked"
                     : "v-icon-checkbox-unchecked"
                 }),
                 _vm._v(" "),
-                _c("span", { staticClass: "checkbox-text" }, [
-                  _vm._v(_vm._s(_vm.dataKey.title))
-                ])
+                _c("span", { staticClass: "checkbox-text" }, [_vm._v("全选")])
               ]
             )
-          ],
+          ]
+        : _vm._e(),
+      _vm._v(" "),
+      _vm._l(_vm.dataKey.sortArray, function(item, index) {
+        return [
+          _c("input", {
+            directives: [
+              {
+                name: "show",
+                rawName: "v-show",
+                value: false,
+                expression: "false"
+              }
+            ],
+            key: item.key,
+            ref: "v-checkbox",
+            refInFor: true,
+            attrs: { type: "checkbox" },
+            domProps: {
+              value: item.value,
+              checked: _vm.getChecked(item.value, index)
+            }
+          }),
+          _vm._v(" "),
+          _c(
+            "label",
+            {
+              key: item.key,
+              staticClass: "form-checkbox",
+              class: { disabled: item.disabled || _vm.dataKey.disabled },
+              attrs: { "data-index": index, name: _vm.dataKey.name },
+              on: {
+                click: function($event) {
+                  $event.stopPropagation()
+                  return _vm.changeCheckbox(index, item.selectAll)
+                }
+              }
+            },
+            [
+              _c("span", {
+                staticClass: "checkbox-item",
+                class: _vm.getChecked(item.value, index)
+                  ? "v-icon-checkbox-checked"
+                  : "v-icon-checkbox-unchecked"
+              }),
+              _vm._v(" "),
+              _c("span", { staticClass: "checkbox-text" }, [
+                _vm._v(_vm._s(item.title))
+              ])
+            ]
+          )
+        ]
+      }),
       _vm._v(" "),
       _vm.dataKey.error
         ? _c("div", { staticClass: "error-bottom text-error" }, [
@@ -4803,7 +4935,7 @@ var render = function() {
             attrs: {
               maxlength: _vm.dataKey.maxlength,
               placeholder: _vm.dataKey.placeholder,
-              disabled: _vm.dataKey.disabled,
+              disabled: _vm.dataKey.disabled === true,
               name: _vm.dataKey.name,
               type: "checkbox"
             },
@@ -4855,7 +4987,7 @@ var render = function() {
             attrs: {
               maxlength: _vm.dataKey.maxlength,
               placeholder: _vm.dataKey.placeholder,
-              disabled: _vm.dataKey.disabled,
+              disabled: _vm.dataKey.disabled === true,
               name: _vm.dataKey.name,
               type: "radio"
             },
@@ -4884,7 +5016,7 @@ var render = function() {
             attrs: {
               maxlength: _vm.dataKey.maxlength,
               placeholder: _vm.dataKey.placeholder,
-              disabled: _vm.dataKey.disabled,
+              disabled: _vm.dataKey.disabled === true,
               name: _vm.dataKey.name,
               type: _vm.dataKey.type
             },
@@ -4970,6 +5102,14 @@ var render = function() {
       _c(
         "div",
         {
+          directives: [
+            {
+              name: "clickoutside",
+              rawName: "v-clickoutside",
+              value: _vm.hide,
+              expression: "hide"
+            }
+          ],
           on: {
             click: function($event) {
               $event.stopPropagation()
@@ -5162,7 +5302,11 @@ var render = function() {
             ],
             ref: "tooltip",
             staticClass: "el-tooltip",
-            style: { left: _vm.left + "px", top: _vm.top + "px" }
+            style: {
+              left: _vm.left + "px",
+              top: _vm.top + "px",
+              "max-width": _vm.width + "px"
+            }
           },
           [_vm._v("\n\t    \t" + _vm._s(_vm.content) + "\n\t    ")]
         )
@@ -5912,7 +6056,7 @@ exports = module.exports = __webpack_require__(1)(false);
 
 
 // module
-exports.push([module.i, ".form-select {\n  width: 25rem;\n  cursor: pointer;\n  position: relative;\n}\n.form-select .select-arrow {\n    position: absolute;\n    top: 0;\n    right: 0;\n    height: 100%;\n    width: 1.66667rem;\n    text-align: center;\n    -webkit-transition: all 0.3s;\n    -o-transition: all 0.3s;\n    transition: all 0.3s;\n}\n.form-select .select-arrow .select-arrow-icon {\n      height: 2.5rem;\n      line-height: 2.5rem;\n      font-size: 1.6rem;\n}\n.form-select .arrow-up {\n    -webkit-transform: rotateZ(180deg);\n        -ms-transform: rotate(180deg);\n            transform: rotateZ(180deg);\n    -webkit-transition: all 0.3s;\n    -o-transition: all 0.3s;\n    transition: all 0.3s;\n}\n.form-select .text {\n    cursor: pointer;\n    padding-right: 1.66667rem;\n}\n.form-select .select-dropdown {\n    position: absolute;\n    min-width: 100%;\n    list-style: none;\n    border: solid 1px #e4e7ed;\n    -webkit-border-radius: 4px;\n            border-radius: 4px;\n    background-color: #fff;\n    -webkit-box-shadow: 0 2px 1rem 0 rgba(0, 0, 0, 0.1);\n            box-shadow: 0 2px 1rem 0 rgba(0, 0, 0, 0.1);\n    -webkit-box-sizing: border-box;\n            box-sizing: border-box;\n    margin: 5px 0;\n    text-align: left;\n    z-index: 99;\n}\n.form-select .select-dropdown .select-li {\n      padding: 6px;\n      line-height: 1;\n      white-space: nowrap;\n}\n.form-select .select-dropdown .select-li:hover {\n        background: #ddd;\n}\n", ""]);
+exports.push([module.i, ".form-select {\n  width: 25rem;\n  cursor: pointer;\n  position: relative;\n}\n.form-select .select-arrow {\n    position: absolute;\n    top: 0;\n    right: 0;\n    height: 100%;\n    width: 1.66667rem;\n    text-align: center;\n    -webkit-transition: all 0.3s;\n    -o-transition: all 0.3s;\n    transition: all 0.3s;\n}\n.form-select .select-arrow .select-arrow-icon {\n      height: 2.5rem;\n      line-height: 2.5rem;\n      font-size: 1.6rem;\n}\n.form-select .arrow-up {\n    -webkit-transform: rotateZ(180deg);\n        -ms-transform: rotate(180deg);\n            transform: rotateZ(180deg);\n    -webkit-transition: all 0.3s;\n    -o-transition: all 0.3s;\n    transition: all 0.3s;\n}\n.form-select .text {\n    cursor: pointer;\n    padding-right: 1.66667rem;\n}\n.form-select .select-dropdown {\n    position: absolute;\n    min-width: 100%;\n    list-style: none;\n    border: solid 1px #e4e7ed;\n    -webkit-border-radius: 4px;\n            border-radius: 4px;\n    background-color: #fff;\n    -webkit-box-shadow: 0 2px 1rem 0 rgba(0, 0, 0, 0.1);\n            box-shadow: 0 2px 1rem 0 rgba(0, 0, 0, 0.1);\n    -webkit-box-sizing: border-box;\n            box-sizing: border-box;\n    margin: 5px 0;\n    text-align: left;\n    z-index: 99;\n    max-height: 16.66667rem;\n    overflow-y: auto;\n}\n.form-select .select-dropdown .select-li {\n      padding: 6px;\n      line-height: 1;\n      white-space: nowrap;\n}\n.form-select .select-dropdown .select-li:hover {\n        background: #ddd;\n}\n", ""]);
 
 // exports
 
@@ -6266,7 +6410,7 @@ exports = module.exports = __webpack_require__(1)(false);
 
 
 // module
-exports.push([module.i, ".form-port-content {\n  text-align: center;\n  position: relative;\n}\n.form-port-content.bottm-50 {\n    margin-bottom: 4.16667rem;\n}\n.form-port-list {\n  display: inline-block;\n  padding: 10px 1.66667rem;\n  border: 1px solid #ccc;\n  position: relative;\n}\n.form-port-list .select-all-group {\n    position: absolute;\n    top: 100%;\n    margin: 10px 0;\n    left: 0;\n}\n.form-console-group {\n  display: inline-block;\n  position: relative;\n  left: 1.16667rem;\n}\n.form-console-group .port-legend {\n    text-align: left;\n    position: absolute;\n    top: -5rem;\n}\n.form-console-group .port-legend .form-port-group {\n      width: auto;\n      -webkit-transform: scale(0.8);\n          -ms-transform: scale(0.8);\n              transform: scale(0.8);\n}\n.form-console-group .port-text {\n    font-size: 1.2rem;\n}\n.form-port-group {\n  margin: 6px 10px;\n  text-align: center;\n  display: inline-block;\n  width: 2.5rem;\n}\n.form-port-list > .form-port-group:nth-child(4n) + .form-port-group {\n    margin-left: 2rem;\n}\n.form-port-group .port-content {\n    font-size: 0;\n    cursor: pointer;\n}\n.form-port-group .port-content + .port-content {\n      margin-top: 8px;\n}\n.form-port-group .port-content.active .form-port-top,\n    .form-port-group .port-content.active .form-port-body {\n      background: #67c23a;\n      border-color: #67c23a;\n}\n.form-port-group .port-content.disabled .form-port-top,\n    .form-port-group .port-content.disabled .form-port-body {\n      background: #999;\n      border-color: #999;\n}\n.form-port-group .form-port-top {\n    width: 1.83333rem;\n    height: 6px;\n    background: #000;\n    display: inline-block;\n    border: 1px solid #000;\n}\n.form-port-group .form-port-body {\n    width: 2.5rem;\n    height: 1.66667rem;\n    background: #000;\n    margin: 0 auto;\n    border: 1px solid #000;\n}\n", ""]);
+exports.push([module.i, ".form-port-content {\n  text-align: center;\n  position: relative;\n}\n.form-port-content.bottm-50 {\n    margin-bottom: 4.16667rem;\n}\n.form-port-list {\n  padding: 10px 1.66667rem;\n  border: 1px solid #ccc;\n  position: relative;\n}\n.form-port-list .select-all-group {\n    position: absolute;\n    top: 100%;\n    margin: 10px 0;\n    left: 0;\n}\n.form-console-group {\n  display: inline-block;\n  position: relative;\n  left: 1.16667rem;\n}\n.form-console-group .port-legend {\n    text-align: left;\n    position: absolute;\n    top: -5rem;\n    width: 20rem;\n}\n.form-console-group .port-legend .form-port-group {\n      width: auto;\n      -webkit-transform: scale(0.8);\n          -ms-transform: scale(0.8);\n              transform: scale(0.8);\n}\n.form-console-group .port-text {\n    font-size: 1.2rem;\n}\n.form-port-group {\n  margin: 6px 10px;\n  text-align: center;\n  display: inline-block;\n  width: 2.5rem;\n}\n.form-port-list > .form-port-group:nth-child(4n) + .form-port-group {\n    margin-left: 2rem;\n}\n.form-port-group .port-content {\n    font-size: 0;\n    cursor: pointer;\n}\n.form-port-group .port-content + .port-content {\n      margin-top: 8px;\n}\n.form-port-group .port-content.active .form-port-top,\n    .form-port-group .port-content.active .form-port-body {\n      background: #67c23a;\n      border-color: #67c23a;\n}\n.form-port-group .port-content.disabled .form-port-top,\n    .form-port-group .port-content.disabled .form-port-body {\n      background: #999;\n      border-color: #999;\n}\n.form-port-group .form-port-top {\n    width: 1.83333rem;\n    height: 6px;\n    background: #000;\n    display: inline-block;\n    border: 1px solid #000;\n}\n.form-port-group .form-port-body {\n    width: 2.5rem;\n    height: 1.66667rem;\n    background: #000;\n    margin: 0 auto;\n    border: 1px solid #000;\n    position: relative;\n}\n.form-port-group .form-port-body .port-group-text {\n      position: absolute;\n      height: 100%;\n      width: 100%;\n      top: 0;\n      text-align: center;\n      z-index: 99;\n      font-size: 1rem;\n      line-height: 1.66667rem;\n      color: #fff;\n}\n", ""]);
 
 // exports
 
@@ -6325,7 +6469,7 @@ exports = module.exports = __webpack_require__(1)(false);
 
 
 // module
-exports.push([module.i, ".select-box .form-checkbox {\n  margin-right: 0;\n}\n", ""]);
+exports.push([module.i, ".select-box .form-checkbox {\n  margin-right: 0;\n}\n.select-box .disabled .checkbox-item {\n  color: #ddd;\n  cursor: not-allowed;\n}\n", ""]);
 
 // exports
 
@@ -6344,6 +6488,36 @@ var _vTooltip = __webpack_require__(121);
 var _vTooltip2 = _interopRequireDefault(_vTooltip);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var startClick = void 0;
+var seed = 0;
+var nodeList = [];
+var ctx = '@@clickoutsideContext';
+
+document.addEventListener('mousedown', function (e) {
+    return startClick = e;
+});
+
+document.addEventListener('mouseup', function (e) {
+    nodeList.forEach(function (node) {
+        if (!node.contains(e.target)) {
+            //当点击元素不是当前node的子元素时
+            node[ctx].documentHandler(e, startClick);
+        }
+    });
+});
+
+function createDocumentHandler(el, binding, vnode) {
+    return function () {
+        if (!vnode || !vnode.context) return;
+
+        if (binding.expression && el[ctx].methodName && vnode.context[el[ctx].methodName]) {
+            vnode.context[el[ctx].methodName]();
+        } else {
+            el[ctx].bindingFn && el[ctx].bindingFn();
+        }
+    };
+}
 
 var install = function install(Vue) {
     var TooltipBox = Vue.extend(_vTooltip2.default);
@@ -6388,8 +6562,35 @@ var install = function install(Vue) {
                 el.addEventListener("mouseleave", function (event) {
                     tooltipBox.show = false;
                 });
+            }
+        },
+        clickoutside: {
+            bind: function bind(el, binding, vnode) {
+                nodeList.push(el);
+                var id = seed++;
+                el[ctx] = {
+                    id: id,
+                    documentHandler: createDocumentHandler(el, binding, vnode),
+                    methodName: binding.expression,
+                    bindingFn: binding.value
+                };
             },
-            updated: function updated(el) {}
+            update: function update(el, binding, vnode) {
+                el[ctx].documentHandler = createDocumentHandler(el, binding, vnode);
+                el[ctx].methodName = binding.expression;
+                el[ctx].bindingFn = binding.value;
+            },
+            unbind: function unbind(el) {
+                var len = nodeList.length;
+
+                for (var i = 0; i < len; i++) {
+                    if (nodeList[i][ctx].id === el[ctx].id) {
+                        nodeList.splice(i, 1);
+                        break;
+                    }
+                }
+                delete el[ctx];
+            }
         }
     };
 
@@ -6462,7 +6663,7 @@ exports = module.exports = __webpack_require__(1)(false);
 
 
 // module
-exports.push([module.i, ".el-tooltip {\n  position: absolute;\n  background: #000;\n  padding: 6px 10px;\n  color: #fff;\n  z-index: 9999;\n  -webkit-border-radius: 6px;\n          border-radius: 6px;\n}\n", ""]);
+exports.push([module.i, ".el-tooltip {\n  position: absolute;\n  background: #000;\n  padding: 6px 10px;\n  color: #fff;\n  z-index: 9999;\n  -webkit-border-radius: 6px;\n          border-radius: 6px;\n  word-break: break-word;\n}\n", ""]);
 
 // exports
 

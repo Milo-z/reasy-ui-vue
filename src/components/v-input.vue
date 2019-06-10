@@ -54,7 +54,6 @@ export default {
         //TODO: 数据转换
         this.dataKey = this.setOptions(this.dataKey, defaults);
     },
-
     mounted() {},
     data() {
         return {

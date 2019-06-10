@@ -4,7 +4,7 @@
 	    	
 	    </div>
 
-		<div ref="tooltip" v-else class="el-tooltip" v-show="show && content" :style="{'left': left + 'px', 'top': top + 'px'}">
+		<div ref="tooltip" v-else class="el-tooltip" v-show="show && content" :style="{'left': left + 'px', 'top': top + 'px', 'max-width': width + 'px'}">
 	    	{{content}}
 	    </div>
     </transition>
@@ -18,6 +18,7 @@
 				content: "",
 				left: 0,
 				top: 0,
+				width: 200,
 				show: false,
 				relativeWidth: 0,
 				relativeHeight: 0
@@ -44,6 +45,7 @@
 				
 				//当下方超出屏幕高度时
 				if(clientRect.bottom > bodyHeight) {
+					
 					this.top = this.top - this.$refs.tooltip.offsetHeight;
 				}
 			}
@@ -70,6 +72,7 @@
 		color: #fff;
 		z-index: 9999;
 		border-radius: 6px;
+		word-break: break-word;
 	}
 
 </style>

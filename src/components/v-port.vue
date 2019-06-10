@@ -9,7 +9,9 @@
                     :class="{'active': getChecked(item.index[0]), 'disabled': getDisabled(item.index[0])}"
                 >
                     <div class="form-port-top"></div>
-                    <div class="form-port-body"></div>
+                    <div class="form-port-body">
+                        <div class="port-group-text">{{groupConfig[item.index[0]]}}</div>
+                    </div>
                 </div>
 
                 <div
@@ -18,12 +20,23 @@
                     :class="{'active': getChecked(item.index[1]), 'disabled': getDisabled(item.index[1])}"
                 >
                     <div class="form-port-top"></div>
-                    <div class="form-port-body"></div>
+                    <div class="form-port-body">
+                        <div class="port-group-text">{{groupConfig[item.index[1]]}}</div>
+                    </div>
                 </div>
                 <span>{{item.index[1]}}</span>
             </div>
             <div class="form-console-group">
                 <div class="port-legend" v-if="legend">
+                    <div class="form-port-group" v-if="hasGroupLegend">
+                        <div class="port-content">
+                            <div class="form-port-top"></div>
+                            <div class="form-port-body">
+                                <div class="port-group-text">1</div>
+                            </div>
+                        </div>
+                        <div class="port-text">汇聚端口</div>
+                    </div>
                     <div class="form-port-group">
                         <div class="port-content active">
                             <div class="form-port-top"></div>
@@ -53,18 +66,23 @@
                         @click="clickPort(item.index)"
                         :class="{'active': getChecked(item.index), 'disabled': getDisabled(item.index)}"
                     >
-                        <div class="form-port-body"></div>
+                        <div class="form-port-body">
+                            <div class="port-group-text">{{groupConfig[item.index]}}</div>
+                        </div>
                     </div>
                     <span>{{item.index}}</span>
                 </div>
             </div>
             <div v-if="dataPort.hasSelectAll" class="select-all-group">
-                <v-button  :title="isSelected ? '取消全选': '全选'" :callback="selectAllPort"></v-button>
+                <v-button  :title="isSelected ? deselectAll : selectAll" :callback="selectAllPort"></v-button>
             </div>
         </div>
     </div>
 </template>
 <script>
+
+import {copyDeepData} from "./libs.js";
+
 let defaults = {
     show: true,
     singleVal: false,
@@ -79,9 +97,28 @@ let defaults = {
 };
 export default {
     name: "v-port",
-    props: ["dataPort"],
+    props: ["dataPort", "relativePort"],
+    computed: {
+        activePortList() {
+            let valArr = [],
+                newValue = this.dataPort.val|| [];
+            
+            newValue.forEach((item) => {
+                //选中的端口
+                if(this.relativePort && this.relativePort[item]) {
+                    valArr = valArr.concat(valArr, this.relativePort[item]);
+                } else {
+                    valArr.push(item);
+                }
+            });
+            //删除禁用的
+            valArr = minusArr(valArr, this.dataPort.disabled);
+            return valArr;
+        }
+    },
     created() {
         this.dataPort = this.setOptions(this.dataPort, defaults);
+    
         let portIndex = (this.dataPort.portNum - this.dataPort.consolePort) / 2;
         for (let i = 0; i < portIndex; i++) {
             this.portList.push({
@@ -100,19 +137,35 @@ export default {
         if(this.singleVal) { //单选时，去掉全选按钮
             this.hasSelectAll = false;
         }
+
+        //获取组名
+        for(let prop in this.relativePort) {
+            this.hasGroupLegend = true;
+            this.relativePort[prop].forEach((item) => {
+                //组数字
+                this.groupConfig[item] = prop.match(/[\d]+$/g)[0];
+                //关联组
+                this.relativeGroup[item] = this.relativePort[prop].filter(item1 => item1 != item);
+            });
+        }
     },
     data() {
         return {
             legend: this.dataPort.legend,
             portList: [],
+            groupConfig: {}, //端口与组的关联关系
+            relativeGroup: {},  //端口与端口的关联关系
             consoleList: [],
-            isSelected: false,
+            hasGroupLegend: false,
+            deselectAll :_('Deselect all'),
+            selectAll:  _('Select All'),
+            isSelected: false
         };
     },
     methods: {
         getChecked(portIndex) {
             portIndex = String(portIndex);
-            return this.dataPort.val.indexOf(portIndex) != -1;
+            return this.activePortList.indexOf(portIndex) != -1;
         },
         getDisabled(portIndex) {
             return this.dataPort.disabled.indexOf(portIndex) != -1;
@@ -129,15 +182,21 @@ export default {
                 return;
             }
 
-            let index = this.dataPort.val.indexOf(portIndex);
+            
+            //查找组或者当前端口
+            let relativePortval = findRelativePort(this.relativePort, portIndex);
+            let index = this.dataPort.val.indexOf(relativePortval);
+
             if (!this.singleVal) {
                 if (index == -1) {
-                    //不存在
-                    this.dataPort.val.push(portIndex);
+                    //合并
+                    this.dataPort.val.push(relativePortval);
                 } else {
+                    //删除
                     this.dataPort.val.splice(index, 1);
                     this.isSelected = false;
                 }
+
             } else {
                 if (index == -1) {
                     //不存在
@@ -151,11 +210,18 @@ export default {
         getAllPort() {
             let maxPort = this.dataPort.portNum,
                 portArr = [];
+            //关联组 组名
+            for (let prop in this.relativePort) {
+                portArr.push(prop);
+            }
             for(let i = 1; i <= maxPort; i++ ) {
                 if(this.getDisabled(i)) {
                     continue;
                 }
-                portArr.push(String(i));
+                //没有关联组
+                if(!this.relativeGroup[i]) {
+                    portArr.push(String(i));
+                }
             }
             return portArr;
         },
@@ -170,7 +236,28 @@ export default {
         }
     }
 };
+
+function findRelativePort(relativePort, port) {
+    for(let prop in relativePort) {
+        if(relativePort[prop].indexOf(port) != -1) {
+            return prop;
+        }
+    }
+    return port;
+}
+
+//差集
+function minusArr (a, b) {
+    return a.filter(function(v){ return b.indexOf(v) == -1; });
+}
+
+//并集
+function unionArr(a, b) {
+    return a.concat(b.filter(function(v){ return !(a.indexOf(v) > -1);}));
+}
 </script>
+
+
 
 <style lang="scss">
 .form-port-content {
@@ -181,7 +268,7 @@ export default {
     }
 }
 .form-port-list {
-    display: inline-block;
+    
     padding: 10px 20px;
     border: 1px solid #ccc;
     position: relative;
@@ -200,6 +287,7 @@ export default {
         text-align: left;
         position: absolute;
         top: -60px;
+        width: 240px;
         .form-port-group {
             width: auto;
             transform: scale(0.8);
@@ -252,6 +340,18 @@ export default {
         background: #000;
         margin: 0 auto;
         border: 1px solid #000;
+        position: relative;
+        .port-group-text {
+            position: absolute;
+            height: 100%;
+            width: 100%;
+            top: 0;
+            text-align: center;
+            z-index: 99;
+            font-size: 12px;
+            line-height: 20px;
+            color: #fff;
+        }
     }
 }
 </style>

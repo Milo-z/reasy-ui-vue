@@ -150,6 +150,14 @@ function checkData(dataKey, value) {
             return true;
         }
     }
+    if(Array.isArray(dataKey.sortArray)) {
+        let sortArr = dataKey.sortArray.filter(item => item.value == val);
+        if(sortArr.length > 0) {
+            dataKey.error = '';
+            return true;
+        }
+    }
+    
 
     if (!Array.isArray(dataKey.valid)) {
         if (dataKey.valid) {

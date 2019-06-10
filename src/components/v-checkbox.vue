@@ -1,65 +1,47 @@
 <template>
     <div class="form-el-content form-el-checkbox" v-show="dataKey.show" :class="{'error-group': dataKey.error}">
-        <template v-if="groups">
-            <template v-if="dataKey.hasSelectAll">
-                <input
-                    type="checkbox"
-                    ref="v-checkbox-all"
-                    v-show="false"
-                    :checked="selectedAll"
-                >
-                <label
-                    class="form-checkbox"
-                    @click.stop="changeSelectedAll()"
-                    :name="dataKey.name"
-                >
-                    <span
-                        class="checkbox-item"
-                        :class="selectedAll ? 'v-icon-checkbox-checked' : 'v-icon-checkbox-unchecked'"
-                    ></span>
-                    <span class="checkbox-text">全选</span>
-                </label>
-            </template>
-            <template v-for="(item, index) in dataKey.sortArray">
-                <input
-                    type="checkbox"
-                    ref="v-checkbox"
-                    :value="item.value"
-                    v-show="false"
-                    :checked="getChecked(item.value, index)"
-                    :key="item.key"
-                >
-                <label
-                    class="form-checkbox"
-                    :class="{'disabled': item.disabled}"
-                    @click.stop="changeCheckbox(index, item.selectAll)"
-                    :data-index="index"
-                    :key="item.key"
-                    :name="dataKey.name"
-                >
-                    <span
-                        class="checkbox-item"
-                        :class="getChecked(item.value, index) ? 'v-icon-checkbox-checked' : 'v-icon-checkbox-unchecked'"
-                    ></span>
-                    <span class="checkbox-text">{{item.title}}</span>
-                </label>
-            </template>
-        </template>
-        <template v-else>
-            <label class="form-checkbox" @click.stop="changeCheckbox()" :name="dataKey.name">
-                <input
-                    type="checkbox"
-                    class="none"
-                    ref="v-checkbox"
-                    v-show="false"
-                    :checked="getChecked()"
-                    
-                >
+        <template v-if="dataKey.hasSelectAll">
+            <input
+                type="checkbox"
+                ref="v-checkbox-all"
+                v-show="false"
+                :checked="selectedAll"
+            >
+            <label
+                class="form-checkbox"
+                :class="{'disabled': dataKey.disabled}"
+                @click.stop="changeSelectedAll()"
+                :name="dataKey.name"
+            >
                 <span
                     class="checkbox-item"
-                    :class="getChecked() ? 'v-icon-checkbox-checked' : 'v-icon-checkbox-unchecked'"
+                    :class="selectedAll ? 'v-icon-checkbox-checked' : 'v-icon-checkbox-unchecked'"
                 ></span>
-                <span class="checkbox-text">{{dataKey.title}}</span>
+                <span class="checkbox-text">全选</span>
+            </label>
+        </template>
+        <template v-for="(item, index) in dataKey.sortArray">
+            <input
+                type="checkbox"
+                ref="v-checkbox"
+                :value="item.value"
+                v-show="false"
+                :checked="getChecked(item.value, index)"
+                :key="item.key"
+            >
+            <label
+                class="form-checkbox"
+                :class="{'disabled': item.disabled || dataKey.disabled}"
+                @click.stop="changeCheckbox(index, item)"
+                :data-index="index"
+                :key="item.key"
+                :name="dataKey.name"
+            >
+                <span
+                    class="checkbox-item"
+                    :class="getChecked(item.value, index) ? 'v-icon-checkbox-checked' : 'v-icon-checkbox-unchecked'"
+                ></span>
+                <span class="checkbox-text">{{item.title}}</span>
             </label>
         </template>
         <div class="error-bottom text-error" v-if="dataKey.error">{{dataKey.error}}</div>
@@ -68,7 +50,7 @@
 
 <script>
 let defaults = {
-    required: true,
+    required: false,
     css: "", //样式
     show: true, //是否显示
     ignore: false, //是否忽略
@@ -83,10 +65,6 @@ let defaults = {
         value: "",
         disabled: ""
     }*/],
-    options: {
-        //[value]: [title]
-    },
-    title: "", //
     changeCallBack: function() {}
 };
 
@@ -95,16 +73,6 @@ export default {
     props: ["dataKey"],
     created() {
         this.dataKey = this.setOptions(this.dataKey, defaults);
-
-        //sortArray为空时，默认以dataKey.options 对象属性排序
-        if (this.dataKey.sortArray.length === 0) {
-            for (let prop in this.dataKey.options) {
-                this.dataKey.sortArray.push({
-                    title: this.dataKey.options[prop],
-                    value: prop
-                });
-            }
-        }
 
         if (this.dataKey.sortArray.length <= 1) {
             this.groups = false;
@@ -119,19 +87,21 @@ export default {
         };
     },
     methods: {
-        changeCheckbox(index) {
+        changeCheckbox(index, item) {
             var valArr = [],
                 _this = this;
 
+            if(this.dataKey.disabled === true || item.disabled) {
+                return;
+            }
             if (!this.groups) {
                 this.$refs["v-checkbox"].checked = !this.$refs["v-checkbox"]
                     .checked;
                 this.dataKey.val = this.$refs["v-checkbox"].checked
-                    ? this.dataKey.values[0]
+                    ? (this.dataKey.sortArray[0].value || this.dataKey.values[0])
                     : this.dataKey.values[1];
             } else {
                 //组
-
                 this.$refs["v-checkbox"][index].checked = !this.$refs[
                     "v-checkbox"
                 ][index].checked;
@@ -142,7 +112,6 @@ export default {
                     }
                 });
                
-               
                 this.dataKey.val = valArr;
                 //this.checkData(this.dataKey, valArr);
             }
@@ -151,7 +120,9 @@ export default {
             }
         },
         changeSelectedAll() {
-            
+            if(this.dataKey.disabled === true) {
+                return;
+            }
             this.selectedAll = !this.selectedAll;
             var valArr = [];
             if(this.selectedAll) {

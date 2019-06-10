@@ -1,6 +1,6 @@
 <template>
     <div class="form-el-content form-select" :class="{'error-group': dataKey.error}"  v-show="dataKey.show">
-        <div @click.stop="showOption">
+        <div v-clickoutside="hide" @click.stop="showOption">
             <input
                 :readonly="dataKey.hasManual !== true"
                 type="text"
@@ -60,9 +60,10 @@ let defaults = {
     disabled: false, //是否禁用
     hasManual: false, //是否支持自定义
     manualText: _("Manual"),
-    maxLength: "", //输入框最大输入长度
+    maxlength: "", //输入框最大输入长度
     error: "", //错误
     name: "",
+    defaultVal: "",
     immediate: true,
     sortArray: [
         /* {
@@ -74,7 +75,7 @@ let defaults = {
     valid: [], //数据验证 仅自定义时生效
     options: {}, //options 和sortArray 同时存在时优先以sortArray存在
     changeCallBack: function() {},
-    beforeChange: function() {}
+    beforeChange: function() {} //改变之前，返回false时不会执行changeCallBack
 };
 
 let MANUAL_VALUE = "-1";
@@ -96,19 +97,23 @@ export default {
                 });
             }
         }
+        //默认值
+        defaults.val = defaults.val || defaults.defaultVal;
+
         this.dataKey = this.setOptions(this.dataKey, defaults);
     },
     data() {
         return {
             error: "",
             dropdownShow: false,
+            firstChange: false,
             selectLabel: "",
             dataOption: {}
         };
     },
     mounted() {
         //定义body click事件
-        this.globalEvent("click", this.hide);
+        //this.globalEvent("click", this.hide);
     },
     methods: {
         isObject(obj) {
@@ -117,18 +122,19 @@ export default {
         changeSelect(value, label) {
 
             this.dropdownShow = false;
+            
             if (value === this.dataKey.val) {
                 return;
             }
+            this.firstChange = true;
+
             if(this.dataKey.beforeChange(value) === false) {
                 return;
             }
             this.dataKey.error = '';
             this.dataKey.val = value;
             this.selectLabel = label;
-            if(!this.dataKey.immediate) {
-                this.dataKey.changeCallBack(value);
-            }
+            this.dataKey.changeCallBack(value);
         },
         showOption() {
             if(!this.dataKey.disabled) {
@@ -159,7 +165,10 @@ export default {
 
             this.dataKey.sortArray.forEach(function(item) {
                 //当显示的文字存在于下拉列表时
-                if (_this.selectLabel == item.title) {
+                if(_this.selectLabel == item.value) {
+                    _this.selectLabel = item.title;
+                    newVal = item.value;
+                } else if (_this.selectLabel == item.title) {
                     newVal = item.value;
                 }
             });
@@ -196,7 +205,7 @@ export default {
         }
     },
     destroyed() {
-        this.globalRemoveEvent("click", this.hide);
+        //this.globalRemoveEvent("click", this.hide);
         this.dataKey.error = "";
     },
     watch: {
@@ -208,8 +217,8 @@ export default {
                 try {
                     this.setInputValue();
                 } catch(e) {}
-                if(this.dataKey.immediate && !this.dataKey.hasManual) {
-                    this.dataKey.changeCallBack(newValue);
+                if((this.dataKey.immediate !== false || this.firstChange == true) && !this.dataKey.hasManual) {
+                    this.dataKey.changeCallBack && this.dataKey.changeCallBack(newValue);
                 }
             },
             //立即执行
@@ -258,6 +267,8 @@ export default {
         margin: 5px 0;
         text-align: left;
         z-index: 99;
+        max-height: 200px;
+        overflow-y: auto;
         .select-li {
             padding: 6px;
             line-height: 1;

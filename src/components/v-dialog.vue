@@ -24,7 +24,6 @@
 
 <script>
 	let defaults = {
-	    required: false,
 	    css: "", //样式
 		title: "",
 		hasOK: true,
@@ -32,7 +31,6 @@
 	    okText: _("OK"),
 	    cancelText: _("Cancel"),
 	    show: true, //是否显示
-	    ignore: true, //是否忽略
 	    okCallBack: function() {},
         cancelCallBack: function() {}
 	};
@@ -48,7 +46,6 @@
         created() {
         	//TODO: 数据转换
     		this.dialog = this.setOptions(this.dialog, defaults);
-
         },
         mounted(){
 

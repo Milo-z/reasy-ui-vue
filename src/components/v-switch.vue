@@ -12,10 +12,9 @@
 let defaults = {
     css: "", //样式
     show: true, //是否显示
-    ignore: true, //是否忽略
     disabled: false, //是否禁用
     val: "", //组件id
-    immediate: false,
+    immediate: true,
     name: "",
     values: [true, false],
     title: "", //描述
@@ -44,10 +43,11 @@ export default {
                 return;
             }
 
+            this.firstChange = true;
             if(this.dataKey.beforeChange() === false) {
                 return;
             }
-            this.firstChange = true;
+            
             this.checked = !this.checked;
             this.dataKey.val = this.checked ? this.dataKey.values[0] : this.dataKey.values[1];
         }
