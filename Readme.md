@@ -1,3 +1,21 @@
+# 组件类型
+
+- [数据验证](#数据验证)
+- [Table表格](#Table表格) 
+- [下拉框](#下拉框) 
+- [复选框](#复选框) 
+- [单选按钮](#单选按钮) 
+- [输入框](#输入框) 
+- [开关](#开关)
+- [按钮](#按钮)
+- [滑块](#滑块)
+- [组](#组)
+- [提示信息](#提示信息)
+- [弹出层](#弹出层)
+- [消息提示](#消息提示)
+- [端口配置](#端口配置)
+- [区块翻译](#区块翻译)
+
 ### 数据验证
 
 输入框和自定义下拉框可定义数据验证函数，内部已集成数据验证，但未定义数据验证的类型。
@@ -165,6 +183,7 @@
 	</script>
 
  
+<span id="Table表格"></span>
 
 ### Table表格
 
@@ -350,6 +369,8 @@ checkbox 中 on-custom-comp 事件中，参数为对象，其属性为
 
 * 表格操作事件处理主要是执行表格的 on-custom-comp事件，通过参数类型（type）不同处理不同的事件
 
+<div id="下拉框"></div>
+
 ### 下拉框
 
 支持下拉框自定义和手动输入
@@ -428,6 +449,8 @@ sortArray的两种配置
 
 * 选择手动输入时，值为 -1，后续扩展成传参
 
+<div id="复选框"></div>
+
 ### 复选框
 
 支持单个复选框和多个复选框，使用属性为 :data-key="xxxx"
@@ -493,7 +516,7 @@ sortArray数组字段
 
 	</script>
 	
-
+<div id="单选按钮"></div>
 
 ### 单选按钮
 
@@ -557,6 +580,7 @@ sortArray 条目的对象如下
 	}	
 	</script>
 	
+<div id="输入框"></div>
 
 ### 输入框
 
@@ -631,7 +655,7 @@ valid 为单个验证时，可以为对象，如
 	</script>
 
 
-
+<div id="开关"></div>
 
 ### 开关
 
@@ -676,6 +700,7 @@ options配置属性
 	}	
 	</script>
 
+<div id="按钮"></div>
 
 ### 按钮
 
@@ -712,6 +737,8 @@ options配置属性
 		}
 	}	
 	</script>
+
+<div id="滑块"></div>
 
 ### 滑块
 
@@ -752,6 +779,8 @@ options配置属性
 	}	
 	</script>
 
+<div id="组"></div>
+
 ### 组
 
 左右布局，左边文字，右边为组件
@@ -791,6 +820,8 @@ options配置属性
 	}	
 	</script>
 
+<div id="提示信息"></div>
+
 ### 提示信息
 	
 鼠标放上去后显示的文字，类似title属性
@@ -802,6 +833,8 @@ options配置属性
 	<div v-tooltip="'随便显示什么'"></div>
 
 当鼠标放到该元素上时，则显示“随便显示什么”
+
+<div id="弹出层"></div>
 
 ### 弹出层
 
@@ -861,6 +894,7 @@ options配置属性
 	}	
 	</script>
 
+<div id="消息提示"></div>
 
 ### 消息提示
 
@@ -892,6 +926,8 @@ options配置属性
 |cancelText | String | 取消  | 取消按钮文字
 |hasCancel | Boolean | true | 是否有取消按钮
 |content | String or Dom | | 提示的文字或者dom节点
+
+<div id="端口配置"></div>
 
 ### 端口配置
 
@@ -936,5 +972,22 @@ options配置属性
 `relative-port` 为端口组名称，显示哪些端口在同一组，此时配置时，以组为单位
 
 属性为组名称，值为此组内的端口号（同一端口不能在两个组内）
+
+### 区块翻译
+
+组件 `v-elem`，属性show，表示是否显示隐藏
+
+此处为解决v-if下显示后，文字未翻译的问题
+
+* 前提是项目必须引用B28n.js，并且在B28n.js 函数 `replaceTextNodeValue`中增加
+	
+	if(element.getAttribute("data-translated")) {
+		//translate siblings
+		if (nextSibling) {
+			replaceTextNodeValue(nextSibling);
+		}
+		return;
+	}
+
 
 	 
