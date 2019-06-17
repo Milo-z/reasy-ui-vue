@@ -62,7 +62,7 @@ export default {
             this.startX = e.pageX;
             this.lastLeft = this.left;
             this.moveStart = true;
-            document.body.addClass("no-select");
+            //document.body.addClass("no-select");
         },
         mouseMove(e) {
             if (this.moveStart) {
@@ -84,7 +84,7 @@ export default {
             this.moveStart = false;
             window.removeEventListener("mousemove", this.mouseMove);
             window.removeEventListener("mouseup", this.mouseUp);
-            document.body.removeClass("no-select");
+            //document.body.removeClass("no-select");
             this.dataKey.val = this.vText;
         }
     },

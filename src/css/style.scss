@@ -141,7 +141,7 @@ to {
 
 input:disabled,
 select:disabled {
-    background: #ebebe4;
+    background: $disabled-color;
     cursor: not-allowed;
 }
 

@@ -1,12 +1,11 @@
 <template>
-    <div class="form-el-content form-el-checkbox" v-show="dataKey.show" :class="{'error-group': dataKey.error}">
+    <div
+        class="form-el-content form-el-checkbox"
+        v-show="dataKey.show"
+        :class="{'error-group': dataKey.error}"
+    >
         <template v-if="dataKey.hasSelectAll">
-            <input
-                type="checkbox"
-                ref="v-checkbox-all"
-                v-show="false"
-                :checked="selectedAll"
-            >
+            <input type="checkbox" ref="v-checkbox-all" v-show="false" :checked="selectedAll">
             <label
                 class="form-checkbox"
                 :class="{'disabled': dataKey.disabled}"
@@ -60,11 +59,13 @@ let defaults = {
     error: "",
     hasSelectAll: false, //是否有全选  组存在
     immediate: true,
-    sortArray: [/*{
+    sortArray: [
+        /*{
         title: "",
         value: "",
         disabled: ""
-    }*/],
+    }*/
+    ],
     changeCallBack: function() {}
 };
 
@@ -72,13 +73,13 @@ export default {
     name: "v-checkbox",
     props: ["dataKey"],
     created() {
-        this.dataKey = this.setOptions(this.dataKey, defaults);
-
         if (this.dataKey.sortArray.length <= 1) {
             this.groups = false;
         } else {
             this.groups = true;
+            defaults.val = [];
         }
+        this.dataKey = this.setOptions(this.dataKey, defaults);
     },
     data() {
         return {
@@ -91,48 +92,47 @@ export default {
             var valArr = [],
                 _this = this;
 
-            if(this.dataKey.disabled === true || item.disabled) {
+            if (this.dataKey.disabled === true || item.disabled) {
                 return;
             }
             if (!this.groups) {
                 this.$refs["v-checkbox"].checked = !this.$refs["v-checkbox"]
                     .checked;
                 this.dataKey.val = this.$refs["v-checkbox"].checked
-                    ? (this.dataKey.sortArray[0].value || this.dataKey.values[0])
+                    ? this.dataKey.sortArray[0].value || this.dataKey.values[0]
                     : this.dataKey.values[1];
             } else {
                 //组
+                if(this.$refs["v-checkbox"][index].checked) { //选中的时候过滤此值
+                    this.dataKey.val = this.dataKey.val.filter(item2 => item2 !== item.value);
+                } else {
+                    this.dataKey.val.push(item.value);
+                }
                 this.$refs["v-checkbox"][index].checked = !this.$refs[
                     "v-checkbox"
                 ][index].checked;
-
-                this.$refs["v-checkbox"].forEach(function(item) {
-                    if (item.checked) {
-                        valArr.push(item.value);
-                    }
-                });
-               
-                this.dataKey.val = valArr;
-                //this.checkData(this.dataKey, valArr);
             }
-            if(!this.dataKey.immediate) {
-                this.dataKey.changeCallBack();
+            if (!this.dataKey.immediate) {
+                this.dataKey.changeCallBack(this.dataKey.val);
             }
         },
         changeSelectedAll() {
-            if(this.dataKey.disabled === true) {
+            if (this.dataKey.disabled === true) {
                 return;
             }
             this.selectedAll = !this.selectedAll;
             var valArr = [];
-            if(this.selectedAll) {
-               this.$refs["v-checkbox"].forEach(function(item) {
+            if (this.selectedAll) {
+                this.dataKey.sortArray.forEach(item => {
                     valArr.push(item.value);
-                }); 
+                });
+                this.dataKey.val = valArr;
+            } else {
+                this.dataKey.val = [];
             }
-            this.dataKey.val = valArr;
-            if(!this.dataKey.immediate) {
-                this.dataKey.changeCallBack();
+            
+            if (!this.dataKey.immediate) {
+                this.dataKey.changeCallBack(this.dataKey.val);
             }
         },
         getChecked(value, index) {
@@ -154,13 +154,16 @@ export default {
         "dataKey.val": {
             handler(newValue, oldValue) {
                 //全选
-                if(newValue && newValue.length === this.dataKey.sortArray.length) {
+                if (
+                    newValue &&
+                    newValue.length === this.dataKey.sortArray.length
+                ) {
                     this.selectedAll = true;
                 } else {
                     this.selectedAll = false;
                 }
-                if(this.dataKey.immediate) {
-                    this.dataKey.changeCallBack();
+                if (this.dataKey.immediate) {
+                    this.dataKey.changeCallBack(newValue);
                 }
             },
             //立即执行

@@ -13,7 +13,6 @@
 						<div v-else>{{content}}</div>
 					</div>
 					<div class="btn-group">
-						
 						<button v-show="hasCancel" class="btn" @click="cancel()">{{cancelText}}</button> &nbsp;&nbsp;
 						<button class="btn btn-primary" @click="confirm()">{{okText}}</button>
 					</div>

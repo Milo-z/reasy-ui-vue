@@ -262,8 +262,10 @@ export default {
             searchItem: [],
             searchText: "",
             checkbox: {
+                sortArray: [{
+                    title: ""
+                }],
                 values: ["1", "0"],
-                val: "",
                 changeCallBack: this.changeSelectAll
             }
         };

@@ -23,6 +23,9 @@ import vSwitch from './v-switch';
 import vSlider from './v-slider';
 import vPort from './v-port';
 import vTableCheckbox from './table-checkbox';
+import vColumn from './v-column';
+import vIp from './v-ip';
+import vMac from './v-mac';
 
 let components = [
     vGroup,
@@ -40,7 +43,10 @@ let components = [
     vSwitch,
     vSlider,
     vPort,
-    vTableCheckbox
+    vTableCheckbox,
+    vColumn,
+    vIp,
+    vMac
 ];
 
 import derectives from '../directives';
@@ -51,15 +57,6 @@ const install = function(Vue) {
     components.forEach(component => {
         Vue.component(component.name, component);
     });
-
-    // 定义全局点击函数
-    Vue.prototype.globalEvent = function(eventName,callback) {
-        document.body.addEventListener(eventName, callback);
-    };
-
-    Vue.prototype.globalRemoveEvent = function(eventName,callback) {
-        document.body.removeEventListener(eventName, callback);
-    };
 
     //定义数据验证
     Vue.prototype.$checkData = checkData;
@@ -87,7 +84,6 @@ const install = function(Vue) {
            // Vue.extend(currentMsg, defaults);
         }
 
-        
         if (typeof msgOptions === 'string') {
             currentMsg.content = msgOptions;
         } else if (typeof msgOptions === 'object') {

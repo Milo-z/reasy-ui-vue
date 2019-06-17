@@ -1,5 +1,5 @@
 <template>
-    <div class="form-el-content form-input"  :class="{'error-group': dataKey.error, [dataKey.css]: true}">
+    <div class="form-el-content form-input" :class="{'error-group': dataKey.error, [dataKey.css]: true}" v-show="dataKey.show">
         <input
             :type="dataKey.type"
             :maxlength="dataKey.maxlength"
@@ -77,17 +77,13 @@ export default {
                 return;
             }
             
-             
             this.dataKey.changeCallBack(this.dataKey.val);
-            this.$emit("custom-event", this.dataKey.val);
         },
         hasPlaceholder() {
             var i = document.createElement("input");
             return "placeholder" in i;
         },
         check(dataObj) {
-
-            //todo: 必须全局绑定 checkData
             if(typeof this.$checkData == "function") {
                 return this.$checkData(dataObj);
             }

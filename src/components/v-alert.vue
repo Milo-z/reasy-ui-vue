@@ -1,10 +1,10 @@
 <template>
     <transition name="fade">
-        <div v-if="alert.show">
-            <v-dialog :dialog="alert">
-                <slot></slot>
-            </v-dialog>
-        </div>
+        
+        <v-dialog :dialog="alert">
+            <slot></slot>
+        </v-dialog>
+
     </transition>
 </template>
 
@@ -26,13 +26,7 @@ export default {
         return {};
     },
     created() {
-        let _this = this;
-        this.alert = this.setOptions(this.alert, defaults);
-    },
-    methods: {
-        handlerCancel() {
-            this.alert.show = false;
-        }
+        this.alert = this.setOptions(this.alert, defaults, true);
     }
 };
 </script>

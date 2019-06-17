@@ -8,6 +8,9 @@
 - [输入框](#输入框) 
 - [开关](#开关)
 - [按钮](#按钮)
+- [IP地址输入框](#IP地址输入框)
+- [MAC地址输入框](#MAC地址输入框)
+- [自定义多段输入框](#自定义多段输入框)
 - [滑块](#滑块)
 - [组](#组)
 - [提示信息](#提示信息)
@@ -26,11 +29,11 @@
 	let valid = {
 		num: {
 			all: function(str, min, max) {
-
+	
 	            if (!(/^([-0-9])?([0-9]+)$/).test(str)) {
 	                return "必须输入数字";
 	            }
-
+	
 	            if (min && max) {
 	                if (parseInt(str, 10) < min || parseInt(str, 10) > max) {
 	                    return _("输入范围: %s - %s", [min, max]);
@@ -41,27 +44,27 @@
 	
 	}
 	Vue.prototype.$valid = valid;
-	
+
 
 	//or
-
-	let valid = {
-
-		num: function(str, min, max) {
-
-            if (!(/^([-0-9])?([0-9]+)$/).test(str)) {
-                return "必须输入数字";
-            }
 	
-            if (min && max) {
-                if (parseInt(str, 10) < min || parseInt(str, 10) > max) {
-                    return _("输入范围: %s - %s", [min, max]);
-                }
-            }
+	let valid = {
+	
+		num: function(str, min, max) {
+	
+	        if (!(/^([-0-9])?([0-9]+)$/).test(str)) {
+	            return "必须输入数字";
+	        }
+	
+	        if (min && max) {
+	            if (parseInt(str, 10) < min || parseInt(str, 10) > max) {
+	                return _("输入范围: %s - %s", [min, max]);
+	            }
+	        }
 		}
 	
 	}
-
+	
 	Vue.prototype.$valid = valid;
 
 #### 单个数据的验证
@@ -83,7 +86,7 @@
 			args: [1, 200]
 		}
 	}
-
+	
 	//Vue 组件内部调用
 	let success = this.$checkData(dataKey);
 	if(success) {
@@ -168,7 +171,7 @@
 	            }
 	        };
 	    },
-
+	
 	    methods: {
 	        submit() {
 	            let checkSuccess = this.$checkAll(this.formData);
@@ -183,6 +186,11 @@
 	</script>
 
  
+
+
+
+
+
 <span id="Table表格"></span>
 
 ### Table表格
@@ -197,54 +205,57 @@
 
 tableOptions对象
 
-| 参数 | 类型 | 默认值 |意义
-|---|----|----|----
-|originData| Array | [] | 表格原始数据
-|show |Boolean | true | 表格是否显示
-|css | String | | 表格自定义样式
-|key | String | | 表格数据的关键字，用于查找和匹配数据，每组数据的唯一标识符
-|maxTableRow  | Number| 10 | 表格显示多少行，超过行数时显示滚动条
-|showPage | Boolean | false | 是否支持分页显示
-|pagePer | Number | 10 | 每页多少条
-|search | Boolean | false | 是否支持搜索
-|placeholder | String |  | 搜索框的占位符，为空时会取支持搜索列的title，再以 "/" 合并
-|selectBox | Boolean | false | 第一列是否是复选框
-|secondColumns | Array | | 表格第二个title
-|columns | Array | | 表头信息
+| 参数          | 类型    | 默认值 | 意义                                                       |
+| ------------- | ------- | ------ | ---------------------------------------------------------- |
+| originData    | Array   | []     | 表格原始数据                                               |
+| show          | Boolean | true   | 表格是否显示                                               |
+| css           | String  |        | 表格自定义样式                                             |
+| key           | String  |        | 表格数据的关键字，用于查找和匹配数据，每组数据的唯一标识符 |
+| maxTableRow   | Number  | 10     | 表格显示多少行，超过行数时显示滚动条                       |
+| showPage      | Boolean | false  | 是否支持分页显示                                           |
+| pagePer       | Number  | 10     | 每页多少条                                                 |
+| search        | Boolean | false  | 是否支持搜索                                               |
+| placeholder   | String  |        | 搜索框的占位符，为空时会取支持搜索列的title，再以 "/" 合并 |
+| selectBox     | Boolean | false  | 第一列是否是复选框                                         |
+| secondColumns | Array   |        | 表格第二个title                                            |
+| columns       | Array   |        | 表头信息                                                   |
+
 
 
 secondColumns
 
-| 参数 | 类型 | 默认值 |意义
-|---|----|----|----
-|width | String   | | 宽度
-|colspan | Number | | 占几列
-|rowspan | Number | | 占几行
-|title   | String | | 文字显示 
+| 参数    | 类型   | 默认值 | 意义     |
+| ------- | ------ | ------ | -------- |
+| width   | String |        | 宽度     |
+| colspan | Number |        | 占几列   |
+| rowspan | Number |        | 占几行   |
+| title   | String |        | 文字显示 |
+
+
 
 columns
 
-| 参数 | 类型 | 默认值 |意义
-|---|----|----|----
-|title | String|  | 表头文字
-|field | String | | 表格字段
-|width | String | | 列宽度
-|search | Boolean | | 此列是否支持搜索
-|sort | Boolean | | 此列是否支持排序
-|format | Function | | 数据转换函数，必须有返回值<br>第一参数为改字段的值<br>第二参数为此行的数据<br>返回值为当前显示
-|parseHtml | Boolean | false | 是否显示以html显示
-|componentName | String | | 自定义组件名称，必须为全局组件<br>其中事件处理必须触发`on-custom-comp`父组件的事件
+| 参数          | 类型     | 默认值 | 意义                                                         |
+| ------------- | -------- | ------ | ------------------------------------------------------------ |
+| title         | String   |        | 表头文字                                                     |
+| field         | String   |        | 表格字段                                                     |
+| width         | String   |        | 列宽度                                                       |
+| search        | Boolean  |        | 此列是否支持搜索                                             |
+| sort          | Boolean  |        | 此列是否支持排序                                             |
+| format        | Function |        | 数据转换函数，必须有返回值，<br />第一参数为改字段的值<br/>第二参数为此行的数据<br/>返回值为当前显示 |
+| parseHtml     | Boolean  | false  | 是否显示以html显示                                           |
+| componentName | String   |        | 自定义组件名称，必须为全局组件<br>其中事件处理必须触发`on-custom-comp`父组件的事件 |
 
 自定义组件中可以从父组件获取到的值为
 
-| 参数 | 类型 | 默认值 |意义
-|---|----|----|----
-|action | Any | | 自定义的字段，用于自定义组件传值
-|rowData | Object | |当前行的数据
-|originData | Object | |当前行的原始数据
-|field | String | | 当前行列的字段
-|keyword | String | | 关键字，等于表格插件的key
-|index | Number | | 当前行数 
+| 参数       | 类型   | 默认值 | 意义                             |
+| ---------- | ------ | ------ | -------------------------------- |
+| action     | Any    |        | 自定义的字段，用于自定义组件传值 |
+| rowData    | Object |        | 当前行的数据                     |
+| originData | Object |        | 当前行的原始数据                 |
+| field      | String |        | 当前行列的字段                   |
+| keyword    | String |        | 关键字，等于表格插件的key        |
+| index      | Number |        | 当前行数                         |
 
 * 当selectBox为true时， 列表第一项为checkbox
 
@@ -286,12 +297,14 @@ callback 表格更新后的回调
 
 checkbox 中 on-custom-comp 事件中，参数为对象，其属性为
 
-| 参数 | 类型 | 默认值 |意义
-|---|----|----|----
-|type | string | | 事件处理的标志，复选框时 值为checkbox，全选时为selectAll，其他需用户自定义
-|index | Number | | 当前第几个
-|rowData | Object | | 此行的数据（经过format转换后的数据）
-|originData | Object | | 原始数据 
+| 参数       | 类型   | 默认值 | 意义                                                         |
+| ---------- | ------ | ------ | ------------------------------------------------------------ |
+| type       | string |        | 事件处理的标志，复选框时 值为checkbox，全选时为selectAll<br />其他需用户自定义 |
+| index      | Number |        | 当前第几个                                                   |
+| rowData    | Object |        | 此行的数据（经过format转换后的数据）                         |
+| originData | Object |        | 原始数据                                                     |
+
+
 
 
 见下示例中的`customCompFunc`
@@ -305,7 +318,7 @@ checkbox 中 on-custom-comp 事件中，参数为对象，其属性为
 				:callback="afterUpdateTable">
 		</v-table>
 	</template>
-
+	
 	<script>
 		export default {
 		    data() {
@@ -355,7 +368,7 @@ checkbox 中 on-custom-comp 事件中，参数为对象，其属性为
 					//your code
 				},
 				afterUpdateTable(pageData) { //当前页面的数据
-
+	
 					pageData.forEach(item => {
 						if(item.vlanId == "0") {
 							item.hasCheckbox = false;// 禁用checkbox
@@ -376,25 +389,28 @@ checkbox 中 on-custom-comp 事件中，参数为对象，其属性为
 支持下拉框自定义和手动输入
 
 
-| 参数 | 类型 | 默认值 |意义
-|---|----|----|----
-|required | Boolean | true | 是否必须输入
-|css | String | | 样式
-|show | Boolean | true | 是否显示
-|ignore | Boolean | false | 是否忽略验证，也可用于保存时不提交此项
-|disabled | Boolean | false | 是否禁用
-|hasManual | Boolean | false | 是否支持手动输入
-|manualText | String | 自定义| 手动输入时，下拉列表手动输入的文字
-|maxlength | Number | | 手动输入时最大输入长度
-|error | String | | 错误信息
-|name | String | | 下拉框的name，用于自动化
-|defaultVal | String | | 下拉框的默认值
-|immediate | Boolean | true | 是否立即执行回调函数
-|sortArray | Array | | 下拉框列表
-|val | String | | 下拉框值
-|valid | Array | | 自定义数据时的验证类型（详情见输入框）
-|changeCallBack | Function | | 值被修改后执行的回调，参数为下拉框的值
-|beforeChange | Function | | 值修改之前执行的函数，返回false时不会执行changCallBack，其他则执行
+
+| 参数           | 类型     | 默认值 | 意义                                                         |
+| -------------- | -------- | ------ | ------------------------------------------------------------ |
+| required       | Boolean  | true   | 是否必须输入                                                 |
+| css            | String   |        | 样式                                                         |
+| show           | Boolean  | true   | 是否显示                                                     |
+| ignore         | Boolean  | false  | 是否忽略验证，也可用于保存时不提交此项                       |
+| disabled       | Boolean  | false  | 是否禁用                                                     |
+| hasManual      | Boolean  | false  | 是否支持手动输入                                             |
+| manualText     | String   | 自定义 | 手动输入时，下拉列表手动输入的文字                           |
+| maxlength      | Number   |        | 手动输入时最大输入长度                                       |
+| error          | String   |        | 错误信息                                                     |
+| name           | String   |        | 下拉框的name，用于自动化                                     |
+| defaultVal     | String   |        | 下拉框的默认值                                               |
+| immediate      | Boolean  | true   | 是否立即执行回调函数                                         |
+| sortArray      | Array    |        | 下拉框列表                                                   |
+| val            | String   |        | 下拉框值                                                     |
+| valid          | Array    |        | 自定义数据时的验证类型（详情见输入框）                       |
+| changeCallBack | Function |        | 值被修改后执行的回调，参数为下拉框的值                       |
+| beforeChange   | Function |        | 值修改之前执行的函数，返回false时不会执行changCallBack，其他则执行 |
+
+
 
 
 sortArray的两种配置
@@ -456,29 +472,36 @@ sortArray的两种配置
 支持单个复选框和多个复选框，使用属性为 :data-key="xxxx"
 
 
-| 参数 | 类型 | 默认值 |意义
-|---|----|----|----
-|required | Boolean | false | 是否必须有值
-|css | String | | 样式
-|show | Boolean | true | 是否显示
-|ignore | Boolean | false | 是否忽略验证，也可用于保存时不提交此项
-|disabled | Boolean | false | 是否禁用，禁用所有
-|val | String or Array | | 值
-|name| String | | 组件名称
-|values | Array | [true, false] | 选中或不选中的值  第一项为选中的值  第二项为不选中的值
-|error | String | | 错误信息
-|hasSelectAll | Boolean | false | 是否有全选，多项时有效
-|sortArray | Array | | 选项列表
-|changeCallBack | Function | | 修改数据后的函数，参数为复选框的值
+
+| 参数           | 类型            | 默认值        | 意义                                                   |
+| -------------- | --------------- | ------------- | ------------------------------------------------------ |
+| required       | Boolean         | false         | 是否必须有值                                           |
+| css            | String          |               | 样式                                                   |
+| show           | Boolean         | true          | 是否显示                                               |
+| ignore         | Boolean         | false         | 是否忽略验证，也可用于保存时不提交此项                 |
+| disabled       | Boolean         | false         | 是否禁用，禁用所有                                     |
+| val            | String or Array |               | 值                                                     |
+| name           | String          |               | 组件名称                                               |
+| values         | Array           | [true, false] | 选中或不选中的值  第一项为选中的值  第二项为不选中的值 |
+| error          | String          |               | 错误信息                                               |
+| hasSelectAll   | Boolean         | false         | 是否有全选，多项时有效                                 |
+| sortArray      | Array           |               | 选项列表                                               |
+| changeCallBack | Function        |               | 修改数据后的函数，参数为复选框的值                     |
+
+
 
 
 sortArray数组字段
 
-| 参数 | 类型 | 默认值 |意义
-|---|----|----|----
-|title | String | | 选项的文字
-|value | String | | 选项的值
-|disabled | Boolean | false | 是否禁用此项，当全局disabled时，全部禁用
+
+
+
+
+| 参数     | 类型    | 默认值 | 意义                                     |
+| -------- | ------- | ------ | ---------------------------------------- |
+| title    | String  |        | 选项的文字                               |
+| value    | String  |        | 选项的值                                 |
+| disabled | Boolean | false  | 是否禁用此项，当全局disabled时，全部禁用 |
 
 * val 当选项只有一个时，值为String， 当选项多个时，返回的是选中后的值组成的数组
 * hasSelectAll 是否有全选，适用于多个复选框
@@ -513,9 +536,9 @@ sortArray数组字段
 			}
 		}
 	}
-
-	</script>
 	
+	</script>
+
 <div id="单选按钮"></div>
 
 ### 单选按钮
@@ -524,36 +547,33 @@ sortArray数组字段
 
 配置属性字段如下
 
-
-| 参数 | 类型 | 默认值 |意义
-|---|----|----|----
-|required | Boolean | true | 是否必须有值
-|css | String | | 样式
-|show | Boolean | true | 是否显示
-|ignore | Boolean | false | 是否忽略验证，也可用于保存时不提交此项
-|disabled | Boolean | false | 是否禁用，禁用所有
-|val | String or Array | | 值
-|name| String | | 组件名称
-|error | String | | 错误信息
-|sortArray | Array | | radio选项
-|changCallBack | Function | | 修改选项后的回调事件
+| 参数          | 类型            | 默认值 | 意义                                   |
+| ------------- | --------------- | ------ | -------------------------------------- |
+| required      | Boolean         | true   | 是否必须有值                           |
+| css           | String          |        | 样式                                   |
+| show          | Boolean         | true   | 是否显示                               |
+| ignore        | Boolean         | false  | 是否忽略验证，也可用于保存时不提交此项 |
+| disabled      | Boolean         | false  | 是否禁用，禁用所有                     |
+| val           | String or Array |        | 值                                     |
+| name          | String          |        | 组件名称                               |
+| error         | String          |        | 错误信息                               |
+| sortArray     | Array           |        | radio选项                              |
+| changCallBack | Function        |        | 修改选项后的回调事件                   |
 
 sortArray 条目的对象如下
 
-| 参数 | 类型 | 默认值 |意义
-|---|----|----|----
-|value  | String | | 选项的值
-|title  | String | | 选项显示的文字
-|disabled |Boolean | false | 是否禁用此项，不是必须配置
-
-
+| 参数     | 类型    | 默认值 | 意义                       |
+| -------- | ------- | ------ | -------------------------- |
+| value    | String  |        | 选项的值                   |
+| title    | String  |        | 选项显示的文字             |
+| disabled | Boolean | false  | 是否禁用此项，不是必须配置 |
 
 示例
 
 	<template>
 		<v-radio :dataKey="radio"></v-radio>
 	</template>
-
+	
 	<script>
 	
 	export default {
@@ -579,7 +599,7 @@ sortArray 条目的对象如下
 		}
 	}	
 	</script>
-	
+
 <div id="输入框"></div>
 
 ### 输入框
@@ -588,29 +608,29 @@ sortArray 条目的对象如下
 
 options配置属性
 
-| 参数 | 类型 | 默认值 |意义
-|----|----|----|----
-|required | Boolean | true | 是否必须有值
-|css | String | | 样式
-|show | Boolean | true | 是否显示
-|ignore | Boolean | false | 是否忽略验证，也可用于保存时不提交此项
-|disabled | Boolean | false | 是否禁用，禁用所有
-|val | String or Array | | 值
-|name| String | | 组件名称
-|error | String | | 错误信息
-|maxlength | Number | | 输入框最大允许输入长度
-|type | String | text | 输入框类型
-|placeholder | String | | 输入框占位符
-|hasEye | Boolean | false | 是否有小眼睛
-|valid | Object or Array | | 数据验证类型
-|changeCallBack | Function | | 数据更新后的回调函数
+| 参数           | 类型            | 默认值 | 意义                                   |
+| -------------- | --------------- | ------ | -------------------------------------- |
+| required       | Boolean         | true   | 是否必须有值                           |
+| css            | String          |        | 样式                                   |
+| show           | Boolean         | true   | 是否显示                               |
+| ignore         | Boolean         | false  | 是否忽略验证，也可用于保存时不提交此项 |
+| disabled       | Boolean         | false  | 是否禁用，禁用所有                     |
+| val            | String or Array |        | 值                                     |
+| name           | String          |        | 组件名称                               |
+| error          | String          |        | 错误信息                               |
+| maxlength      | Number          |        | 输入框最大允许输入长度                 |
+| type           | String          | text   | 输入框类型                             |
+| placeholder    | String          |        | 输入框占位符                           |
+| hasEye         | Boolean         | false  | 是否有小眼睛                           |
+| valid          | Object or Array |        | 数据验证类型                           |
+| changeCallBack | Function        |        | 数据更新后的回调函数                   |
 
 valid
 
-| 参数 | 类型 | 默认值 |意义
-|----|----|----|----
-|type | String |  | 数据验证类型
-|args | Array | | 验证参数
+| 参数 | 类型   | 默认值 | 意义         |
+| ---- | ------ | ------ | ------------ |
+| type | String |        | 数据验证类型 |
+| args | Array  |        | 验证参数     |
 
 
 valid 为单个验证时，可以为对象，如
@@ -619,7 +639,7 @@ valid 为单个验证时，可以为对象，如
 		type: "num",
 		args: [1,100]
 	}
-
+	
 	//or
 	valid: [{
 		type: "num",
@@ -633,7 +653,7 @@ valid 为单个验证时，可以为对象，如
 	<template>
 		<v-input :data-key="input"></v-input>
 	</template>
-
+	
 	<script>
 	
 	export default {
@@ -663,17 +683,17 @@ valid 为单个验证时，可以为对象，如
 
 options配置属性
 
-| 参数 | 类型 | 默认值 |意义
-|----|----|----|----
-|css | String | | 样式
-|show | Boolean | true | 是否显示
-|disabled | Boolean | false | 是否禁用，禁用所有
-|val | String or Array | | 值
-|immediate | Boolean | true | 是否立即执行回调函数
-|name| String | | 组件名称
-|values | Array | [true, false] | 开启和关闭的值
-|changeCallBack | Function |  | 切换开关后执行的回调函数
-|beforeChange | Function | | 切换之前执行的函数，如果返回false，则不执行changeCallBack
+| 参数           | 类型            | 默认值        | 意义                                                      |
+| -------------- | --------------- | ------------- | --------------------------------------------------------- |
+| css            | String          |               | 样式                                                      |
+| show           | Boolean         | true          | 是否显示                                                  |
+| disabled       | Boolean         | false         | 是否禁用，禁用所有                                        |
+| val            | String or Array |               | 值                                                        |
+| immediate      | Boolean         | true          | 是否立即执行回调函数                                      |
+| name           | String          |               | 组件名称                                                  |
+| values         | Array           | [true, false] | 开启和关闭的值                                            |
+| changeCallBack | Function        |               | 切换开关后执行的回调函数                                  |
+| beforeChange   | Function        |               | 切换之前执行的函数，如果返回false，则不执行changeCallBack |
 
 
 示例
@@ -681,7 +701,7 @@ options配置属性
 	<template>
 		<v-switch :data-key="switch"></v-switch>
 	</template>
-
+	
 	<script>
 	
 	export default {
@@ -706,21 +726,23 @@ options配置属性
 
 组件示例： `<v-button title="" css="" :callback="click" :show="isShow" :disabled="isDisabled" name="xxx"></v-button>`
 
-| 参数 | 类型 | 默认值 |意义
-|----|----|----|----
-|title | String | | 按钮文字
-|css | String | | 按钮样式
-|callback | Function |  |  按钮点击事件
-|show | Boolean | true |  按钮是否显示
-|disabled | Boolean | false | 按钮是否禁用
-|name | String | | 按钮名称
+
+
+| 参数     | 类型     | 默认值 | 意义         |
+| :------- | -------- | ------ | ------------ |
+| title    | String   |        | 按钮文字     |
+| css      | String   |        | 按钮样式     |
+| callback | Function |        | 按钮点击事件 |
+| show     | Boolean  | true   | 按钮是否显示 |
+| disabled | Boolean  | false  | 按钮是否禁用 |
+| name     | String   |        | 按钮名称     |
 
 完整示例：
 
 	<template>
 		<v-button title="保存" css="btn-primary" :callback="submit" :show="isShow" :disabled="isDisabled" name="xxx"></v-button>
 	</template>
-
+	
 	<script>
 	
 	export default {
@@ -738,6 +760,116 @@ options配置属性
 	}	
 	</script>
 
+<div id="IP地址输入框"></div>
+
+### IP地址输入框
+
+组件示例： `<v-ip :data-key="ip"></v-ip>`
+
+`data-key`配置属性
+
+| 参数     | 类型            | 默认值 | 意义                                   |
+| -------- | --------------- | ------ | -------------------------------------- |
+| required | Boolean         | true   | 是否必须有值                           |
+| css      | String          |        | 样式                                   |
+| show     | Boolean         | true   | 是否显示                               |
+| ignore   | Boolean         | false  | 是否忽略验证，也可用于保存时不提交此项 |
+| disabled | Boolean         | false  | 是否禁用，禁用所有                     |
+| val      | String          |        | 值                                     |
+| name     | String          |        | 组件名称                               |
+| error    | String          |        | 错误信息                               |
+| valid    | Object or Array |        | 数据验证                               |
+
+示例：
+
+
+	<template>
+		<v-ip :data-key="ip"></v-ip>
+	</template>
+	
+	<script>
+	
+	export default {
+		data() {
+			return {
+				ip： {
+					valid: { //自定义输入验证类型
+						type: "ip"
+					}
+				}
+			}
+		}
+	}	
+	</script>
+
+<div id="MAC地址输入框"></div>
+
+### MAC地址输入框
+
+组件示例： `<v-mac:data-key="ip"></v-mac>`
+
+`data-key`配置属性
+
+| 参数     | 类型            | 默认值 | 意义                                   |
+| -------- | --------------- | ------ | -------------------------------------- |
+| required | Boolean         | true   | 是否必须有值                           |
+| css      | String          |        | 样式                                   |
+| show     | Boolean         | true   | 是否显示                               |
+| ignore   | Boolean         | false  | 是否忽略验证，也可用于保存时不提交此项 |
+| disabled | Boolean         | false  | 是否禁用，禁用所有                     |
+| val      | String          |        | 值                                     |
+| name     | String          |        | 组件名称                               |
+| error    | String          |        | 错误信息                               |
+| valid    | Object or Array |        | 数据验证                               |
+
+示例：
+
+
+	<template>
+		<v-mac :data-key="mac"></v-mac>
+	</template>
+	
+	<script>
+	
+	export default {
+		data() {
+			return {
+				mac： {
+					valid: { //自定义输入验证类型
+						type: "mac"
+					}
+				}
+			}
+		}
+	}	
+	</script>
+
+<div id="自定义多段输入框"></div>
+
+### 自定义多段输入框
+
+IP地址和MAC地址的输入框是基于此组件实现
+
+组件标签`v-column`
+
+| 参数      | 类型            | 默认值 | 意义                                   |
+| --------- | --------------- | ------ | -------------------------------------- |
+| required  | Boolean         | true   | 是否必须有值                           |
+| css       | String          |        | 样式                                   |
+| show      | Boolean         | true   | 是否显示                               |
+| ignore    | Boolean         | false  | 是否忽略验证，也可用于保存时不提交此项 |
+| disabled  | Boolean         | false  | 是否禁用，禁用所有                     |
+| val       | String          |        | 值                                     |
+| name      | String          |        | 组件名称                               |
+| error     | String          |        | 错误信息                               |
+| valid     | Object or Array |        | 数据验证                               |
+| column    | Number          | 4      | 输入框个数                             |
+| maxlength | Number          | 3      | 单个输入框允许输入的长度               |
+| splitter  | String          | .      | 分隔符，将多个输入框的数据用分隔符合并 |
+| allow     | String          | 0-9    | 允许输入的字符                         |
+|           |                 |        |                                        |
+
+
 <div id="滑块"></div>
 
 ### 滑块
@@ -746,22 +878,22 @@ options配置属性
 
 `data-key`配置属性
 
-| 参数 | 类型 | 默认值 |意义
-|----|----|----|----
-|css | String | | 样式
-|show | Boolean | true | 是否显示
-|min | Number | 0 | 最小值
-|max | Number | 100 | 最大值
-|immediate | Boolean | true | 是否立即执行回调函数
-|disabled | Boolean | false | 是否禁用
-|changeCallBack | Function | | 切换值后的回调函数
+| 参数           | 类型     | 默认值 | 意义                 |
+| -------------- | -------- | ------ | -------------------- |
+| css            | String   |        | 样式                 |
+| show           | Boolean  | true   | 是否显示             |
+| min            | Number   | 0      | 最小值               |
+| max            | Number   | 100    | 最大值               |
+| immediate      | Boolean  | true   | 是否立即执行回调函数 |
+| disabled       | Boolean  | false  | 是否禁用             |
+| changeCallBack | Function |        | 切换值后的回调函数   |
 
 完整示例：
 
 	<template>
 		<v-slider :data-key="slider"></v-slider>
 	</template>
-
+	
 	<script>
 	
 	export default {
@@ -787,10 +919,10 @@ options配置属性
 
 组件标签 `v-group`
 
-| 参数 | 类型 | 默认值 |意义
-|----|----|----|----
-|title | String | | 左边文字
-|css | String | | 自定义样式
+| 参数  | 类型   | 默认值 | 意义       |
+| ----- | ------ | ------ | ---------- |
+| title | String |        | 左边文字   |
+| css   | String |        | 自定义样式 |
 
 组件内部的元素会显示在右侧，配合其他组件使用，如：
 
@@ -799,7 +931,7 @@ options配置属性
 			<v-input :data-key="input"></v-input>
 		</v-group>
 	</template>
-
+	
 	<script>
 	
 	export default {
@@ -823,7 +955,7 @@ options配置属性
 <div id="提示信息"></div>
 
 ### 提示信息
-	
+
 鼠标放上去后显示的文字，类似title属性
 
 属性 `v-tooltip`，值为需要显示的信息
@@ -842,17 +974,17 @@ options配置属性
 
 配置属性为
 
-| 参数 | 类型 | 默认值 |意义
-|----|----|----|----
-|title | String | | 弹出框header文字
-|show | Boolean | true | 是否显示
-|css | String | | 自定义样式
-|hasOK | Boolean | true | 是否有确定按钮
-|hasCancel | Boolean | true | 是否有取消按钮
-|okText | String | 确定 | 确定按钮文字
-|cancelText | String | 取消  | 取消按钮文字
-|okCallBack | Function | | 点击确定执行的事件
-|cancelCallBack | Function | | 点击取消执行的事件
+| 参数           | 类型     | 默认值 | 意义               |
+| -------------- | -------- | ------ | ------------------ |
+| title          | String   |        | 弹出框header文字   |
+| show           | Boolean  | true   | 是否显示           |
+| css            | String   |        | 自定义样式         |
+| hasOK          | Boolean  | true   | 是否有确定按钮     |
+| hasCancel      | Boolean  | true   | 是否有取消按钮     |
+| okText         | String   | 确定   | 确定按钮文字       |
+| cancelText     | String   | 取消   | 取消按钮文字       |
+| okCallBack     | Function |        | 点击确定执行的事件 |
+| cancelCallBack | Function |        | 点击取消执行的事件 |
 
 
 示例：
@@ -864,7 +996,7 @@ options配置属性
 			</v-group>
 		</v-dialog>
 	</template>
-
+	
 	<script>
 	
 	export default {
@@ -911,21 +1043,21 @@ options配置属性
 		})；
 	
 	3、提示框
-
+	
 	this.$message(msg, time);
 
 以上三种的msg可以为String 或者Object
 
 为Object时，字段如下
 
-| 参数 | 类型 | 默认值 |意义
-|----|----|----|----
-|title | String | | 弹出框header文字
-|parseHtml | Boolean | false | 是否以HTML方式解析
-|okText | String | 确定 | 确定按钮文字
-|cancelText | String | 取消  | 取消按钮文字
-|hasCancel | Boolean | true | 是否有取消按钮
-|content | String or Dom | | 提示的文字或者dom节点
+| 参数       | 类型          | 默认值 | 意义                  |
+| ---------- | ------------- | ------ | --------------------- |
+| title      | String        |        | 弹出框header文字      |
+| parseHtml  | Boolean       | false  | 是否以HTML方式解析    |
+| okText     | String        | 确定   | 确定按钮文字          |
+| cancelText | String        | 取消   | 取消按钮文字          |
+| hasCancel  | Boolean       | true   | 是否有取消按钮        |
+| content    | String or Dom |        | 提示的文字或者dom节点 |
 
 <div id="端口配置"></div>
 
@@ -933,25 +1065,25 @@ options配置属性
 
 组件名称 `v-port`，配置参数
 
-| 参数 | 类型 | 默认值 |意义
-|----|----|----|----
-|show | Boolean | true | 是否显示
-|singleVal | boolean | false | 是否单选
-|portNum | Number | 28 | 端口个数
-|consolePort | Number | 4 | 串口端口个数
-|isClick | Boolean | true | 是否支持点击
-|val | Array |  | 被选中的端口
-|name | String | | 端口名称
-|disabled | Array |  | 禁用的端口列表
-|legend | Boolean | false | 是否显示端口图例
-|hasSelectAll | Boolean | true | 是否显示全选按钮
+| 参数         | 类型    | 默认值 | 意义             |
+| ------------ | ------- | ------ | ---------------- |
+| show         | Boolean | true   | 是否显示         |
+| singleVal    | boolean | false  | 是否单选         |
+| portNum      | Number  | 28     | 端口个数         |
+| consolePort  | Number  | 4      | 串口端口个数     |
+| isClick      | Boolean | true   | 是否支持点击     |
+| val          | Array   |        | 被选中的端口     |
+| name         | String  |        | 端口名称         |
+| disabled     | Array   |        | 禁用的端口列表   |
+| legend       | Boolean | false  | 是否显示端口图例 |
+| hasSelectAll | Boolean | true   | 是否显示全选按钮 |
 
 示例：
 
 	<template>
 		<v-port :data-port="port" :relative-port="relativePort"></v-port>
 	</template>
-
+	
 	export default {
 		data() {
 			return {
@@ -968,7 +1100,8 @@ options配置属性
 	}	
 	</script>
 
-	
+
+​	
 `relative-port` 为端口组名称，显示哪些端口在同一组，此时配置时，以组为单位
 
 属性为组名称，值为此组内的端口号（同一端口不能在两个组内）
@@ -990,4 +1123,4 @@ options配置属性
 	}
 
 
-	 
+​	 

@@ -39,7 +39,7 @@ export default {
             margin-left: 20px;
         }
         .btn.disabled {
-            background: #ebebe4 !important;
+            background: $disabled-color !important;
             cursor: not-allowed;
             color: #aaa;
         }

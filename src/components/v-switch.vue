@@ -1,13 +1,18 @@
 <template>
-
     <div class="form-swicth form-el-content" v-show="dataKey.show">
-        <span class="switch-item" :name="dataKey.name" @click="setCheckbox()" :class="checked ? 'checked' : ''"></span>
+        <span
+            class="switch-item"
+            :name="dataKey.name"
+            @click="setCheckbox()"
+            :class="checked ? 'checked' : ''"
+        ></span>
         <span>{{dataKey.title}}</span>
     </div>
-
 </template>
 
 <script>
+
+import {isDefined} from "./libs";
 
 let defaults = {
     css: "", //样式
@@ -27,44 +32,43 @@ export default {
     props: ["dataKey"],
     created() {
         this.dataKey = this.setOptions(this.dataKey, defaults);
-        this.checked = this.dataKey.val === this.dataKey.values[0];
     },
     data() {
         return {
-            checked: false,
-            firstChange: false,
+            firstChange: false
         };
     },
-    mounted() {
+    computed: {
+        checked() {
+            return this.dataKey.val === this.dataKey.values[0];
+        }
     },
+    mounted() {},
     methods: {
         setCheckbox() {
-            if(this.dataKey.disabled) {
+            if (this.dataKey.disabled) {
                 return;
             }
 
             this.firstChange = true;
-            if(this.dataKey.beforeChange() === false) {
+            if (this.dataKey.beforeChange() === false) {
                 return;
             }
-            
-            this.checked = !this.checked;
-            this.dataKey.val = this.checked ? this.dataKey.values[0] : this.dataKey.values[1];
+
+            this.dataKey.val = !this.checked
+                ? this.dataKey.values[0]
+                : this.dataKey.values[1];
         }
     },
     watch: {
-        'dataKey.val': {
+        "dataKey.val": {
             handler(newValue, oldValue) {
-                if(newValue === "") {
+                if (!isDefined(newValue) || newValue === "") {
                     return;
                 }
-                if(newValue === this.dataKey.values[0]) {
-                    this.checked = true;
-                } else {
-                    this.checked = false;
-                }
-                if(this.dataKey.immediate || this.firstChange) {
-                    this.dataKey.changeCallBack(this.dataKey.val); 
+
+                if (this.dataKey.immediate || this.firstChange) {
+                    this.dataKey.changeCallBack(this.dataKey.val);
                 }
             },
             immediate: true
@@ -73,40 +77,40 @@ export default {
 };
 </script>
 <style lang="scss">
-    .switch-item {
-        width: 52px;
-        height: $form-line-height;
-        position: relative;
-        border: 1px solid #dfdfdf;
-        background-color: #fdfdfd;
-        box-shadow: #dfdfdf 0 0 0 0 inset;
-        border-radius: 20px;
-        background-clip: content-box;
-        display: inline-block;
-        user-select: none;
-        cursor: pointer;
-        &:focus {
-            outline: 0;
-        }
-        &.checked {
-            border-color: $main-active-color;
-            box-shadow: $main-active-color 0 0 0 16px inset;
-            background-color: $main-active-color;
-            &:before {
-                left: 21px;
-            }
-        }
+.switch-item {
+    width: 52px;
+    height: $form-line-height;
+    position: relative;
+    border: 1px solid #dfdfdf;
+    background-color: #fdfdfd;
+    box-shadow: #dfdfdf 0 0 0 0 inset;
+    border-radius: 20px;
+    background-clip: content-box;
+    display: inline-block;
+    user-select: none;
+    cursor: pointer;
+    &:focus {
+        outline: 0;
+    }
+    &.checked {
+        border-color: $main-active-color;
+        box-shadow: $main-active-color 0 0 0 16px inset;
+        background-color: $main-active-color;
         &:before {
-            content: ' ';
-            width: 29px;
-            height: 29px;
-            position: absolute;
-            top: 0px;
-            left: 0;
-            border-radius: 20px;
-            background-color: #fff;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
-            transition: all .3s;
+            left: 21px;
         }
     }
+    &:before {
+        content: " ";
+        width: 29px;
+        height: 29px;
+        position: absolute;
+        top: 0px;
+        left: 0;
+        border-radius: 20px;
+        background-color: #fff;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+        transition: all 0.3s;
+    }
+}
 </style>

@@ -75,7 +75,7 @@ function sortByKey(item1, item2, fields, sortTypeObj) {
     return 0;
 }
 
-let setOptions = function(data, defaluts) {
+let setOptions = function(data, defaluts, noFreeze) {
 
     //浅复制
     let defOpts = copyDeepData(defaluts);
@@ -89,7 +89,9 @@ let setOptions = function(data, defaluts) {
         }
     }
     //不允许data增加新属性
-    Object.preventExtensions(data);
+    if(!noFreeze) {
+        Object.preventExtensions(data);
+    }
     return data;
 };
 
