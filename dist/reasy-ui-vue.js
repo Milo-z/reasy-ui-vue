@@ -3493,6 +3493,7 @@ exports.default = {
                 reg = new RegExp("[" + regStr + "]", "gi"),
                 illegalReg = new RegExp("[^" + regStr + "]", "gi");
             if (event.keyCode === 8) {
+                this.setValue();
                 return;
             }
 

@@ -1,30 +1,17 @@
 # 组件类型
 
-- [数据验证](#数据验证)
-- [Table表格](#Table表格) 
-- [下拉框](#下拉框) 
-- [复选框](#复选框) 
-- [单选按钮](#单选按钮) 
-- [输入框](#输入框) 
-- [开关](#开关)
-- [按钮](#按钮)
-- [IP地址输入框](#IP地址输入框)
-- [MAC地址输入框](#MAC地址输入框)
-- [自定义多段输入框](#自定义多段输入框)
-- [滑块](#滑块)
-- [组](#组)
-- [提示信息](#提示信息)
-- [弹出层](#弹出层)
-- [消息提示](#消息提示)
-- [端口配置](#端口配置)
-- [区块翻译](#区块翻译)
 
-### 数据验证
+[TOC]
+
+
+### 自定义数据验证
 
 输入框和自定义下拉框可定义数据验证函数，内部已集成数据验证，但未定义数据验证的类型。
 
 如需定义数据验证类型，需在`Vue.prototype`上定义`$valid`属性，
 值为对象，如
+
+#### 添加验证示例
 
 	let valid = {
 		num: {
@@ -67,14 +54,13 @@
 	
 	Vue.prototype.$valid = valid;
 
-#### 单个数据的验证
+#### 单组件数据验证
 
 调用Vue的全局函数 `$checkData`，参数为组件的对象
 
 返回为当前数据是否正确，错误时返回false，并将组件对象的error属性修改为错误的信息。
 
-
-示例：
+##### 示例
 
 	let dataKey = {
 		error: "",
@@ -104,6 +90,8 @@
 返回值为Boolean， true表示验证通过； false表示验证错误
 
 支持验证对象，key为数据字段，值为数据对象的配置，如：
+
+##### 示例
 
 	<template>
 	    <div>  
@@ -188,14 +176,11 @@
  
 
 
-
-
-
 <span id="Table表格"></span>
 
 ### Table表格
 
-配置属性
+#### 配置属性
 
 `<v-table :tableOptions="xxx" @on-custom-comp="xxxxx" :callback="xxxxxx">`
 
@@ -220,20 +205,86 @@ tableOptions对象
 | secondColumns | Array   |        | 表格第二个title                                            |
 | columns       | Array   |        | 表头信息                                                   |
 
+#### 示例
 
+```
+<template>
+	<v-table ref="table" 
+			:tableOptions="tableData" 
+			@on-custom-comp="customCompFunc"
+			:callback="afterUpdateTable">
+	</v-table>
+</template>
 
-secondColumns
+<script>
+	export default {
+	    data() {
+	        return {
+	            tableData: {
+	                key: "vlanId",
+	                css: "table-group",
+	                selectBox: true,
+	                columns: [
+	                    {
+	                        title: "VLAN ID",
+	                        field: "vlanId"
+	                    },
+	                    {
+	                        title: "服务器IP",
+	                        field: "serverIp",
+	                        format(data) {
+	                            return data.join("/");
+	                        }
+	                    }
+	                ]
+	            }
+			}
+		},
+		mounted() {
+			//此处通过ajax获取数据，然后给 this.tableData.originData赋值
+			//this.tableData.originData = your data list;
+		},
+		methods: {
+			customCompFunc(options) {
+	            switch (options.type) {
+	                
+	                //选中单个
+	                case "checkbox":
+	                    this.clickSelectBox(options);
+	                    break;
+	                //全选
+	                case "selectAll":
+	                    this.clickSelectedAll(options);
+	                    break;
+	            }
+	        },
+			clickSelectBox(options) {
+				//your code
+			},
+			clickSelectedAll(options) {
+				//your code
+			},
+			afterUpdateTable(pageData) { //当前页面的数据
 
-| 参数    | 类型   | 默认值 | 意义     |
-| ------- | ------ | ------ | -------- |
-| width   | String |        | 宽度     |
-| colspan | Number |        | 占几列   |
-| rowspan | Number |        | 占几行   |
-| title   | String |        | 文字显示 |
+				pageData.forEach(item => {
+					if(item.vlanId == "0") {
+						item.hasCheckbox = false;// 禁用checkbox
+					}
+				})
+				//表格更新后的回调
+			}
+		}
+	}
+</script>
+```
 
+- 表格操作事件处理主要是执行表格的 on-custom-comp事件，通过参数类型（type）不同处理不同的事件
 
+#### 表头属性
 
-columns
+##### 表头选项
+
+columns，配置属性如下
 
 | 参数          | 类型     | 默认值 | 意义                                                         |
 | ------------- | -------- | ------ | ------------------------------------------------------------ |
@@ -245,6 +296,102 @@ columns
 | format        | Function |        | 数据转换函数，必须有返回值，<br />第一参数为改字段的值<br/>第二参数为此行的数据<br/>返回值为当前显示 |
 | parseHtml     | Boolean  | false  | 是否显示以html显示                                           |
 | componentName | String   |        | 自定义组件名称，必须为全局组件<br>其中事件处理必须触发`on-custom-comp`父组件的事件 |
+
+##### 双列表头配置
+
+单表头出现双列时，此处为多列的配置，此表头显示在第一列
+
+secondColumns，配置属性如下
+
+| 参数    | 类型   | 默认值 | 意义     |
+| ------- | ------ | ------ | -------- |
+| width   | String |        | 宽度     |
+| colspan | Number |        | 占几列   |
+| rowspan | Number |        | 占几行   |
+| title   | String |        | 文字显示 |
+
+双表头示例：
+
+    <template>
+    	<v-table ref="table" 
+    			:tableOptions="tableData">
+    	</v-table>
+    </template>
+    
+    <script>
+    	export default {
+    	    data() {
+    	        return {
+    	            tableData: {
+                        key: "portNum",
+                        css: "table-group",
+                        maxTableRow: 14,
+                        columns: [
+                            {
+                                title: "",
+                                field: "portNum",
+                                width: "50px"
+                            }, {
+                                title: "MSTP",
+                                field: "sendMstp" 
+                            }, {
+                                title: "RSTP",
+                                field: "sendRstp"
+                            }, {
+                                title: "STP",
+                                field: "sendStp"
+                            }, {
+                                title: "TCN",
+                                field: "sendTcn"
+                            }, {
+                                title: "MSTP",
+                                field: "receiveMstp" 
+                            }, {
+                                title: "RSTP",
+                                field: "receiveRstp"
+                            }, {
+                                title: "STP",
+                                field: "receiveStp"
+                            }, {
+                                title: "TCN",
+                                field: "dropTcn"
+                            },
+                            {
+                                title: "Unknown",
+                                field: "dropUnknown"
+                            },{
+                                title: "Illegal",
+                                field: "dropIllegal"
+                            }
+                        ],
+                        secondColumns: [{
+                            rowspan: 2,
+                            title: "端口",
+                            width: "50px"
+                        },{
+                            colspan: 4,
+                            title: "发送"
+                        },{
+                            colspan: 4,
+                            title: "接收"
+                        },{
+                            colspan: 2,
+                            title: "丢弃"
+                        }]
+                    }
+    			}
+    		},
+    		mounted() {
+    			//此处通过ajax获取数据，然后给 this.tableData.originData赋值
+    			//this.tableData.originData = your data list;
+    		}
+    	}
+    </script>
+
+
+
+
+#### 自定义组件
 
 自定义组件中可以从父组件获取到的值为
 
@@ -258,9 +405,10 @@ columns
 | index      | Number |        | 当前行数                         |
 
 * 当selectBox为true时， 列表第一项为checkbox
-
 * 点击事件必须执行表格的自定义事件 on-custom-comp，传参type值为checkbox，
-事件处理都交付于父组件的`on-custom-comp`的事件处理，表格列中自定义组件示例如下
+  事件处理都交付于父组件的`on-custom-comp`的事件处理，表格列中自定义组件
+
+##### 示例
 
 
 		表格中colums的配置
@@ -274,7 +422,7 @@ columns
 		    	<a href="" @click.stop.prevent="update(rowData,field)">编辑</a>&nbsp;
 		    	<a href="" @click.stop.prevent="deleteRow(rowData,field)">删除</a>
 		    </div>`,
-		    props:["rowData", "field", "index", "tableData"],
+		    props:["rowData", "field", "index", "originData"],
 		    methods:{
 		        update(rowData, field){
 		
@@ -295,6 +443,8 @@ callback 表格更新后的回调
 
 * 如果表格某行需要禁用checkbox时，只需给此行数据增加 hasCheckbox
 
+##### 事件
+
 checkbox 中 on-custom-comp 事件中，参数为对象，其属性为
 
 | 参数       | 类型   | 默认值 | 意义                                                         |
@@ -305,90 +455,17 @@ checkbox 中 on-custom-comp 事件中，参数为对象，其属性为
 | originData | Object |        | 原始数据                                                     |
 
 
-
-
 见下示例中的`customCompFunc`
 
-使用示例：
-
-	<template>
-		<v-table ref="table" 
-				:tableOptions="tableData" 
-				@on-custom-comp="customCompFunc"
-				:callback="afterUpdateTable">
-		</v-table>
-	</template>
-	
-	<script>
-		export default {
-		    data() {
-		        return {
-		            tableData: {
-		                key: "vlanId",
-		                css: "table-group",
-		                selectBox: true,
-		                columns: [
-		                    {
-		                        title: "VLAN ID",
-		                        field: "vlanId"
-		                    },
-		                    {
-		                        title: "服务器IP",
-		                        field: "serverIp",
-		                        format(data) {
-		                            return data.join("/");
-		                        }
-		                    }
-		                ]
-		            }
-				}
-			},
-			mounted() {
-				//此处通过ajax获取数据，然后给 this.tableData.originData赋值
-				//this.tableData.originData = your data list;
-			},
-			methods: {
-				customCompFunc(options) {
-		            switch (options.type) {
-		                
-		                //选中单个
-		                case "checkbox":
-		                    this.clickSelectBox(options);
-		                    break;
-		                //全选
-		                case "selectAll":
-		                    this.clickSelectedAll(options);
-		                    break;
-		            }
-		        },
-				clickSelectBox(options) {
-					//your code
-				},
-				clickSelectedAll(options) {
-					//your code
-				},
-				afterUpdateTable(pageData) { //当前页面的数据
-	
-					pageData.forEach(item => {
-						if(item.vlanId == "0") {
-							item.hasCheckbox = false;// 禁用checkbox
-						}
-					})
-					//表格更新后的回调
-				}
-			}
-		}
-	</script>
-
-* 表格操作事件处理主要是执行表格的 on-custom-comp事件，通过参数类型（type）不同处理不同的事件
+* 
 
 <div id="下拉框"></div>
 
 ### 下拉框
 
+#### 配置属性
+
 支持下拉框自定义和手动输入
-
-
 
 | 参数           | 类型     | 默认值 | 意义                                                         |
 | -------------- | -------- | ------ | ------------------------------------------------------------ |
@@ -407,11 +484,10 @@ checkbox 中 on-custom-comp 事件中，参数为对象，其属性为
 | sortArray      | Array    |        | 下拉框列表                                                   |
 | val            | String   |        | 下拉框值                                                     |
 | valid          | Array    |        | 自定义数据时的验证类型（详情见输入框）                       |
-| changeCallBack | Function |        | 值被修改后执行的回调，参数为下拉框的值                       |
+| changeCallBack | Function |        | 值被修改后执行的回调，**参数为下拉框的值**                   |
 | beforeChange   | Function |        | 值修改之前执行的函数，返回false时不会执行changCallBack，其他则执行 |
 
-
-
+#### 下拉选项
 
 sortArray的两种配置
 
@@ -421,7 +497,7 @@ sortArray的两种配置
 
 如：sortArray = [{value: "1", title: "option1"},{value: "2", title: "option2"}]
 
-示例
+#### 示例
 
 	<template>
 		<v-select :data-key="select"></v-select>
@@ -459,19 +535,17 @@ sortArray的两种配置
 	}
 	</script>
 
+#### 注意事项
+
 * 注意： 当hasManual=true时，不会立即执行changeCallBack
-
 * beforeChange： 当返回false时，不会执行changeCallBack
-
 * 选择手动输入时，值为 -1，后续扩展成传参
-
-<div id="复选框"></div>
 
 ### 复选框
 
+#### 配置属性
+
 支持单个复选框和多个复选框，使用属性为 :data-key="xxxx"
-
-
 
 | 参数           | 类型            | 默认值        | 意义                                                   |
 | -------------- | --------------- | ------------- | ------------------------------------------------------ |
@@ -488,14 +562,10 @@ sortArray的两种配置
 | sortArray      | Array           |               | 选项列表                                               |
 | changeCallBack | Function        |               | 修改数据后的函数，参数为复选框的值                     |
 
-
+#### 选项
 
 
 sortArray数组字段
-
-
-
-
 
 | 参数     | 类型    | 默认值 | 意义                                     |
 | -------- | ------- | ------ | ---------------------------------------- |
@@ -503,12 +573,12 @@ sortArray数组字段
 | value    | String  |        | 选项的值                                 |
 | disabled | Boolean | false  | 是否禁用此项，当全局disabled时，全部禁用 |
 
+#### 注意事项
+
 * val 当选项只有一个时，值为String， 当选项多个时，返回的是选中后的值组成的数组
 * hasSelectAll 是否有全选，适用于多个复选框
 
-
-
-示例
+#### 示例
 
 	<template>
 		<v-checkbox :data-key="checkbox"></v-checkbox>
@@ -539,13 +609,11 @@ sortArray数组字段
 	
 	</script>
 
-<div id="单选按钮"></div>
-
 ### 单选按钮
 
 组件示例`<v-radio :data-key="xxx"></v-radio>`
 
-配置属性字段如下
+#### 配置属性
 
 | 参数          | 类型            | 默认值 | 意义                                   |
 | ------------- | --------------- | ------ | -------------------------------------- |
@@ -560,6 +628,8 @@ sortArray数组字段
 | sortArray     | Array           |        | radio选项                              |
 | changCallBack | Function        |        | 修改选项后的回调事件                   |
 
+#### 选项
+
 sortArray 条目的对象如下
 
 | 参数     | 类型    | 默认值 | 意义                       |
@@ -568,7 +638,7 @@ sortArray 条目的对象如下
 | title    | String  |        | 选项显示的文字             |
 | disabled | Boolean | false  | 是否禁用此项，不是必须配置 |
 
-示例
+#### 示例
 
 	<template>
 		<v-radio :dataKey="radio"></v-radio>
@@ -606,7 +676,7 @@ sortArray 条目的对象如下
 
 组件示例： `<v-input :data-key="options"></v-input>`
 
-options配置属性
+#### 配置属性
 
 | 参数           | 类型            | 默认值 | 意义                                   |
 | -------------- | --------------- | ------ | -------------------------------------- |
@@ -625,7 +695,7 @@ options配置属性
 | valid          | Object or Array |        | 数据验证类型                           |
 | changeCallBack | Function        |        | 数据更新后的回调函数                   |
 
-valid
+#### 数据验证valid
 
 | 参数 | 类型   | 默认值 | 意义         |
 | ---- | ------ | ------ | ------------ |
@@ -646,10 +716,8 @@ valid 为单个验证时，可以为对象，如
 		args: [1,100]
 	}]
 
+#### 示例
 
-
-示例
-	
 	<template>
 		<v-input :data-key="input"></v-input>
 	</template>
@@ -681,7 +749,7 @@ valid 为单个验证时，可以为对象，如
 
 组件示例： `<v-switch :data-key="options"></v-switch>`
 
-options配置属性
+#### 配置属性
 
 | 参数           | 类型            | 默认值        | 意义                                                      |
 | -------------- | --------------- | ------------- | --------------------------------------------------------- |
@@ -692,11 +760,10 @@ options配置属性
 | immediate      | Boolean         | true          | 是否立即执行回调函数                                      |
 | name           | String          |               | 组件名称                                                  |
 | values         | Array           | [true, false] | 开启和关闭的值                                            |
-| changeCallBack | Function        |               | 切换开关后执行的回调函数                                  |
+| changeCallBack | Function        |               | 切换开关后执行的回调函数，参数开关当前值                  |
 | beforeChange   | Function        |               | 切换之前执行的函数，如果返回false，则不执行changeCallBack |
 
-
-示例
+#### 示例
 
 	<template>
 		<v-switch :data-key="switch"></v-switch>
@@ -726,7 +793,7 @@ options配置属性
 
 组件示例： `<v-button title="" css="" :callback="click" :show="isShow" :disabled="isDisabled" name="xxx"></v-button>`
 
-
+#### 配置属性
 
 | 参数     | 类型     | 默认值 | 意义         |
 | :------- | -------- | ------ | ------------ |
@@ -737,7 +804,7 @@ options配置属性
 | disabled | Boolean  | false  | 按钮是否禁用 |
 | name     | String   |        | 按钮名称     |
 
-完整示例：
+#### 示例
 
 	<template>
 		<v-button title="保存" css="btn-primary" :callback="submit" :show="isShow" :disabled="isDisabled" name="xxx"></v-button>
@@ -766,7 +833,7 @@ options配置属性
 
 组件示例： `<v-ip :data-key="ip"></v-ip>`
 
-`data-key`配置属性
+#### 配置属性
 
 | 参数     | 类型            | 默认值 | 意义                                   |
 | -------- | --------------- | ------ | -------------------------------------- |
@@ -780,7 +847,7 @@ options配置属性
 | error    | String          |        | 错误信息                               |
 | valid    | Object or Array |        | 数据验证                               |
 
-示例：
+#### 示例
 
 
 	<template>
@@ -808,7 +875,7 @@ options配置属性
 
 组件示例： `<v-mac:data-key="ip"></v-mac>`
 
-`data-key`配置属性
+#### 配置属性
 
 | 参数     | 类型            | 默认值 | 意义                                   |
 | -------- | --------------- | ------ | -------------------------------------- |
@@ -822,7 +889,7 @@ options配置属性
 | error    | String          |        | 错误信息                               |
 | valid    | Object or Array |        | 数据验证                               |
 
-示例：
+####示例
 
 
 	<template>
@@ -850,6 +917,8 @@ options配置属性
 
 IP地址和MAC地址的输入框是基于此组件实现
 
+#### 配置属性
+
 组件标签`v-column`
 
 | 参数      | 类型            | 默认值 | 意义                                   |
@@ -867,28 +936,28 @@ IP地址和MAC地址的输入框是基于此组件实现
 | maxlength | Number          | 3      | 单个输入框允许输入的长度               |
 | splitter  | String          | .      | 分隔符，将多个输入框的数据用分隔符合并 |
 | allow     | String          | 0-9    | 允许输入的字符                         |
-|           |                 |        |                                        |
 
+#### 注意事项
 
-<div id="滑块"></div>
+主要配置column、maxlength、splitter、allow字段，其中allow字段不区分大小写
 
 ### 滑块
 
 组件示例： `<v-slider :data-key="slider"></v-slider>`
 
-`data-key`配置属性
+#### 配置属性
 
-| 参数           | 类型     | 默认值 | 意义                 |
-| -------------- | -------- | ------ | -------------------- |
-| css            | String   |        | 样式                 |
-| show           | Boolean  | true   | 是否显示             |
-| min            | Number   | 0      | 最小值               |
-| max            | Number   | 100    | 最大值               |
-| immediate      | Boolean  | true   | 是否立即执行回调函数 |
-| disabled       | Boolean  | false  | 是否禁用             |
-| changeCallBack | Function |        | 切换值后的回调函数   |
+| 参数           | 类型     | 默认值 | 意义                                 |
+| -------------- | -------- | ------ | ------------------------------------ |
+| css            | String   |        | 样式                                 |
+| show           | Boolean  | true   | 是否显示                             |
+| min            | Number   | 0      | 最小值                               |
+| max            | Number   | 100    | 最大值                               |
+| immediate      | Boolean  | true   | 是否立即执行回调函数                 |
+| disabled       | Boolean  | false  | 是否禁用                             |
+| changeCallBack | Function |        | 切换值后的回调函数，参数为滑块当前值 |
 
-完整示例：
+#### 示例
 
 	<template>
 		<v-slider :data-key="slider"></v-slider>
@@ -917,12 +986,16 @@ IP地址和MAC地址的输入框是基于此组件实现
 
 左右布局，左边文字，右边为组件
 
+#### 配置属性
+
 组件标签 `v-group`
 
 | 参数  | 类型   | 默认值 | 意义       |
 | ----- | ------ | ------ | ---------- |
 | title | String |        | 左边文字   |
 | css   | String |        | 自定义样式 |
+
+#### 示例
 
 组件内部的元素会显示在右侧，配合其他组件使用，如：
 
@@ -952,8 +1025,6 @@ IP地址和MAC地址的输入框是基于此组件实现
 	}	
 	</script>
 
-<div id="提示信息"></div>
-
 ### 提示信息
 
 鼠标放上去后显示的文字，类似title属性
@@ -966,13 +1037,11 @@ IP地址和MAC地址的输入框是基于此组件实现
 
 当鼠标放到该元素上时，则显示“随便显示什么”
 
-<div id="弹出层"></div>
-
 ### 弹出层
 
 自定义弹出框内容，组件名`v-dialog`，
 
-配置属性为
+#### 配置属性
 
 | 参数           | 类型     | 默认值 | 意义               |
 | -------------- | -------- | ------ | ------------------ |
@@ -986,8 +1055,7 @@ IP地址和MAC地址的输入框是基于此组件实现
 | okCallBack     | Function |        | 点击确定执行的事件 |
 | cancelCallBack | Function |        | 点击取消执行的事件 |
 
-
-示例：
+#### 示例
 
 	<template>
 		<v-dialog :dialog="dialog">
@@ -1036,17 +1104,16 @@ IP地址和MAC地址的输入框是基于此组件实现
 		}).catch(function() {
 		//点击取消动作
 		});
+		
 	2、警告框
-	
 	this.$confirm(msg).then(function() {
 		//点击确定动作	
 		})；
 	
 	3、提示框
-	
 	this.$message(msg, time);
 
-以上三种的msg可以为String 或者Object
+确认框和警告框的msg可以为String 或者Object
 
 为Object时，字段如下
 
@@ -1063,7 +1130,11 @@ IP地址和MAC地址的输入框是基于此组件实现
 
 ### 端口配置
 
-组件名称 `v-port`，配置参数
+组件名称 `v-port`，支持配置属性`data-port` 和`relative-port`
+
+#### 配置属性
+
+`data-port`的配置属性如下
 
 | 参数         | 类型    | 默认值 | 意义             |
 | ------------ | ------- | ------ | ---------------- |
@@ -1078,7 +1149,11 @@ IP地址和MAC地址的输入框是基于此组件实现
 | legend       | Boolean | false  | 是否显示端口图例 |
 | hasSelectAll | Boolean | true   | 是否显示全选按钮 |
 
-示例：
+`relative-port` 为端口组名称，显示哪些端口在同一组，此时配置时，以组为单位
+
+属性为组名称，值为此组内的端口号（同一端口不能在两个组内）
+
+#### 示例
 
 	<template>
 		<v-port :data-port="port" :relative-port="relativePort"></v-port>
@@ -1100,11 +1175,6 @@ IP地址和MAC地址的输入框是基于此组件实现
 	}	
 	</script>
 
-
-​	
-`relative-port` 为端口组名称，显示哪些端口在同一组，此时配置时，以组为单位
-
-属性为组名称，值为此组内的端口号（同一端口不能在两个组内）
 
 ### 区块翻译
 
