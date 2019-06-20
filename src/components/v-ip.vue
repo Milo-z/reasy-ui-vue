@@ -14,6 +14,6 @@ export default {
     created() {
         this.dataKey = this.setOptions(this.dataKey, defaults, true);
     }
-}
+};
 </script>
 >

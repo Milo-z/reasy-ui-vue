@@ -33,58 +33,49 @@
     -moz-osx-font-smoothing: grayscale;
 }
 
-.v-icon-eye-open:before {
-    content: "\e909";
-}
-
-.v-icon-eye-close:before {
-    content: "\e90a";
-}
-
-.v-icon-checkbox-checked:before {
+  .v-icon-checkbox-checked:before {
     content: "\e900";
-}
-
-.v-icon-checkbox-unchecked:before {
+  }
+  .v-icon-checkbox-unchecked:before {
     content: "\e901";
-}
-
-.v-icon-search:before {
+  }
+  .v-icon-search:before {
     content: "\e902";
-}
-
-.v-icon-sort-up:before {
+  }
+  .v-icon-sort-up:before {
     content: "\e903";
-}
-
-.v-icon-sort-down:before {
+  }
+  .v-icon-sort-down:before {
     content: "\e904";
-}
-
-.v-icon-unsort:before {
+  }
+  .v-icon-unsort:before {
     content: "\e905";
-}
-
-.v-icon-arrrow-down:before {
+  }
+  .v-icon-eye-open:before {
+    content: "\e909";
+  }
+  .v-icon-eye-close:before {
+    content: "\e90a";
+  }
+  .v-icon-arrrow-down:before {
     content: "\e920";
-}
-
-.v-icon-arrrow-up:before {
+  }
+  .v-icon-arrrow-up:before {
     content: "\e921";
-}
-
-.v-icon-switch-off:before {
+  }
+  .v-icon-switch-off:before {
     content: "\e947";
-}
-
-.v-icon-switch-on:before {
+  }
+  .v-icon-switch-on:before {
     content: "\e94a";
-}
-
-.v-icon-radio-checked:before {
+  }
+  .v-icon-radio-checked:before {
     content: "\ea55";
-}
-
-.v-icon-radio-unchecked:before {
+  }
+  .v-icon-radio-unchecked:before {
     content: "\ea56";
-}
+  }
+  .v-icon-port:before {
+    content: "\e906";
+  }
+  

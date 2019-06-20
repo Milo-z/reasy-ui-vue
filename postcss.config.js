@@ -9,7 +9,7 @@ module.exports = {
                 "iOS 7",
                 "last 3 iOS versions"
             ]
-    }),
+    })/* ,
 	require('postcss-pxtorem')({ 
 		rootValue: 12,
 	  unitPrecision: 5,
@@ -18,6 +18,6 @@ module.exports = {
 	  replace: true,
 	  mediaQuery: false,
 	  minPixelValue: 12
-	})
+	}) */
   ]  
 }

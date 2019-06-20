@@ -31,17 +31,3 @@ export default {
 
 };
 </script>
-
-<style lang="scss">
-    .button-item {
-        display: inline-block;
-        & + .button-item {
-            margin-left: 20px;
-        }
-        .btn.disabled {
-            background: $disabled-color !important;
-            cursor: not-allowed;
-            color: #aaa;
-        }
-    }
-</style>

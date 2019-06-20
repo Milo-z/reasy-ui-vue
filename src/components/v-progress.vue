@@ -64,19 +64,3 @@ export default {
     }
 };
 </script>
-<style lang="scss">
-    .progress-content {
-        background: #e7e7e7;
-        border-radius: 6px;
-        height: 16px;
-        .progress-percent {
-            height: 100%;
-            line-height: 16px;
-            padding-right: 6px;
-            background-color: $main-active-color;
-            color: #fff;
-            border-radius: 6px;
-            font-size: $font-size-small;
-        }
-    }
-</style>

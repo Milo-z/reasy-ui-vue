@@ -46,16 +46,17 @@ module.exports = {
 			{ //npm config set sass_binary_site https://npm.taobao.org/mirrors/node-sass/
                 test: /\.(scss|css)$/,
                 use: [
-                    "vue-style-loader",
+                    //"vue-style-loader",
+					
+                    MiniCssExtractPlugin.loader,
 					"css-loader",
-                    //MiniCssExtractPlugin.loader,
-                    /* {
+                     /* {
 					 loader: 'css-loader',
 					 options: {
 					  // modules: true,
 					   importLoaders: 1
 					 }
-				   }, */
+				   },  */
                     'postcss-loader',
                     'sass-loader',
                     {
@@ -108,7 +109,7 @@ module.exports = {
                 options: {
                     loaders: {
                         js: 'babel-loader',
-                        css: 'style-loader',
+                        //css: 'style-loader',
 						scss: 'vue-style-loader!css-loader!sass-loader?indentedSyntax'
                     },
 					extractCSS: true
@@ -139,12 +140,12 @@ module.exports = {
 
         new VueLoaderPlugin(),
 		
-		/* new MiniCssExtractPlugin({
-			filename: 'css/styles.css?[contenthash:5]',
-			chunkFilename: 'css/[name].css?[contenthash:5]' // use contenthash *
-		}), */
+		 new MiniCssExtractPlugin({
+			filename: 'styles.css?[contenthash:5]',
+			//chunkFilename: 'css/[name].css?[contenthash:5]' // use contenthash *
+		}),
 		
-		new OptimizeCssAssetsPlugin({
+		/* new OptimizeCssAssetsPlugin({
 		  assetNameRegExp: /\.(css|scss)$/g,
 		  cssProcessor: require('cssnano'),
 		  cssProcessorPluginOptions: {
@@ -159,7 +160,7 @@ module.exports = {
 			  }]
 		  },
 		  canPrint: true
-		}),
+		}), */
 
         /* new CopyWebpackPlugin([ //reference from：https://www.npmjs.com/package/copy-webpack-plugin
             { from: './src/fonts', to: './fonts/', flatten: true }

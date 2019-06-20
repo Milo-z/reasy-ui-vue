@@ -1,5 +1,5 @@
 
-import '../css/style.scss';
+import '../css/index.scss';
 import {setOptions, formMessage, checkData, checkSubmit} from './libs';
 import msgboxVue from './MessageBox';
 

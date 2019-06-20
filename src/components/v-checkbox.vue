@@ -48,6 +48,8 @@
 </template>
 
 <script>
+import { isDefined } from "./libs";
+
 let defaults = {
     required: false,
     css: "", //样式
@@ -80,31 +82,42 @@ export default {
             defaults.val = [];
         }
         this.dataKey = this.setOptions(this.dataKey, defaults);
+        this.checkedVal = isDefined(this.dataKey.sortArray[0].value)
+                ? this.dataKey.sortArray[0].value
+                : this.dataKey.values[0];
     },
     data() {
         return {
+            firstChange: false,
             selectedAll: false,
-            groups: false
+            groups: false,
+            checkedVal: ""
         };
     },
     methods: {
         changeCheckbox(index, item) {
             var valArr = [],
+                checkedVal,
                 _this = this;
 
+            
             if (this.dataKey.disabled === true || item.disabled) {
                 return;
             }
+            this.firstChange = true;
             if (!this.groups) {
-                this.$refs["v-checkbox"].checked = !this.$refs["v-checkbox"]
-                    .checked;
-                this.dataKey.val = this.$refs["v-checkbox"].checked
-                    ? this.dataKey.sortArray[0].value || this.dataKey.values[0]
-                    : this.dataKey.values[1];
+                if(this.dataKey.val === this.checkedVal) {
+                    this.dataKey.val = this.dataKey.values[1]
+                } else {
+                    this.dataKey.val = this.checkedVal;
+                }
             } else {
                 //组
-                if(this.$refs["v-checkbox"][index].checked) { //选中的时候过滤此值
-                    this.dataKey.val = this.dataKey.val.filter(item2 => item2 !== item.value);
+                if (this.$refs["v-checkbox"][index].checked) {
+                    //选中的时候过滤此值
+                    this.dataKey.val = this.dataKey.val.filter(
+                        item2 => item2 !== item.value
+                    );
                 } else {
                     this.dataKey.val.push(item.value);
                 }
@@ -120,6 +133,7 @@ export default {
             if (this.dataKey.disabled === true) {
                 return;
             }
+            this.firstChange = true;
             this.selectedAll = !this.selectedAll;
             var valArr = [];
             if (this.selectedAll) {
@@ -130,14 +144,14 @@ export default {
             } else {
                 this.dataKey.val = [];
             }
-            
+
             if (!this.dataKey.immediate) {
                 this.dataKey.changeCallBack(this.dataKey.val);
             }
         },
         getChecked(value, index) {
             if (!this.groups) {
-                if (this.dataKey.val === this.dataKey.values[0]) {
+                if (this.dataKey.val === this.checkedVal) {
                     return true;
                 }
                 return false;
@@ -162,7 +176,7 @@ export default {
                 } else {
                     this.selectedAll = false;
                 }
-                if (this.dataKey.immediate) {
+                if (this.dataKey.immediate || this.firstChange) {
                     this.dataKey.changeCallBack(newValue);
                 }
             },
@@ -172,25 +186,3 @@ export default {
     }
 };
 </script>
-
-<style lang="scss">
-.form-checkbox {
-    display: inline-block;
-    margin-right: 20px;
-    cursor: pointer;
-    .checkbox-item {
-        vertical-align: middle;
-        margin-right: 4px;
-        font-size: 18px;
-        color: $main-active-color;
-    }
-    .checkbox-text {
-        display: inline-block;
-        vertical-align: middle;
-    }
-}
-
-.form-el-checkbox {
-    max-width: $elem-width;
-}
-</style>

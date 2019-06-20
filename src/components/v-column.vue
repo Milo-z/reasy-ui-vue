@@ -153,32 +153,3 @@ export default {
     }
 };
 </script>
-
-<style lang="scss">
-.col-content {
-    border: 1px solid #ddd;
-    .col-group:last-child {
-        padding-right: 0;
-    }
-    &.disabled {
-        background: $disabled-color;
-    }
-}
-.col-group {
-    display: inline-block;
-    position: relative;
-    padding-right: 10px;
-    .text {
-        border: none;
-    }
-    .col-splitter {
-        position: absolute;
-        top: 0;
-        right: 0;
-        width: 10px;
-        text-align: center;
-        line-height: $form-line-height;
-        height: $form-line-height;
-    }
-}
-</style>

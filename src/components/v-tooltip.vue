@@ -57,15 +57,3 @@
 		}
     };
 </script>
-<style lang="scss">
-	.el-tooltip {
-		position: absolute;
-		background: #000;
-		padding: 6px 10px;
-		color: #fff;
-		z-index: 9999;
-		border-radius: 6px;
-		word-break: break-word;
-	}
-
-</style>

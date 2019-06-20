@@ -45,18 +45,5 @@ export default {
     }
 };
 </script>
-<style lang="scss">
-.select-box {
-    .form-checkbox {
-        margin-right: 0;
-    }
-    .disabled {
-        .checkbox-item {
-            color: $disabled-color;
-            cursor: not-allowed;
-        }
-    }
-}
-</style>
 
 

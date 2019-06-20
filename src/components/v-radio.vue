@@ -73,7 +73,6 @@ export default {
     },
     watch: {
         "dataKey.val": {
-            //! TODO: 改变值 不执行watch？
             handler(newValue, oldValue) {
                 if (newValue !== "" && newValue !== undefined) {
                     this.radioValue = newValue;
@@ -93,21 +92,3 @@ export default {
     }
 };
 </script>
-
-<style lang="scss">
-.form-radio {
-    display: inline-block;
-    margin-right: 20px;
-    cursor: pointer;
-    .raido-item {
-        vertical-align: middle;
-        margin-right: 4px;
-        font-size: 18px;
-        color: $main-active-color;
-    }
-    .radio-text {
-        display: inline-block;
-        vertical-align: middle;
-    }
-}
-</style>
